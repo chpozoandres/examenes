@@ -104,6 +104,9 @@
   }
   .chip:hover{border-color:var(--ink);color:var(--ink);}
   .chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .exam-panel{margin-top:20px;padding-top:18px;border-top:1px solid var(--line);}
+  .chip.exam{border-color:#bda987;background:#efe6d6;color:var(--ink);}
+  .chip.exam.on{background:var(--accent);border-color:var(--accent);color:var(--paper);}
   .toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;}
 
   /* ---------- Topic section ---------- */
@@ -189,7 +192,7 @@
   <header>
     <div class="kicker">Grado en Ingeniería Informática · UGR</div>
     <h1>Sistemas de<br><em>Información</em></h1>
-    <div class="sub">Cuestionario de repaso que reúne los catorce tests de evaluación de la asignatura en un único banco de preguntas autocorregible.</div>
+    <div class="sub">Cuestionario de repaso que reúne los 15 tests de evaluación de la asignatura en un único banco de preguntas autocorregible.</div>
     <div class="meta" id="bankMeta">Cargando banco de preguntas…</div>
   </header>
 
@@ -205,6 +208,10 @@
   <div class="controls">
     <div class="label">Filtrar por tema</div>
     <div class="chips" id="topicChips"></div>
+    <div class="exam-panel">
+      <div class="label">Pruebas de examen</div>
+      <div class="chips" id="examChips"></div>
+    </div>
     <div class="toolbar">
       <button class="btn ghost" id="btnAll">Todos</button>
       <button class="btn ghost" id="btnNone">Ninguno</button>
@@ -479,6 +486,21 @@ const TOPICS = [
   ]
 },
 {
+  id:"T6", code:"Tema 6", title:"Procesamiento de transacciones",
+  q:[
+    {t:"La acidez de las transacciones (ACID) hace referencia a:",o:["Atomicidad, consistencia, independencia y durabilidad.","Atomicidad, consistencia, aislamiento y durabilidad.","Aislamiento, consistencia, independencia y durabilidad."],c:[1]},
+    {t:"Niveles de aislamiento SQL, de menor a mayor:",o:["Read uncommitted, read committed, repeatable read, serializable.","Read uncommitted, repeatable read, read committed, serializable.","El estándar SQL no define niveles de aislamiento."],c:[0]},
+    {t:"Que las transacciones mantengan la consistencia del sistema…",o:["Es responsabilidad del gestor de transacciones del DBMS.","Es responsabilidad del programador.","Es responsabilidad del log de transacciones del DBMS."],c:[1]},
+    {t:"El gestor de transacciones (o monitor TP en distribuido)…",o:["Restaura los datos a estado consistente tras un fallo [recovery].","Controla la ejecución concurrente de transacciones simultáneas.","Se encarga de ambas tareas (concurrencia y recuperación)."],c:[2]},
+    {t:"Los logs de transacciones…",o:["Son el único mecanismo de seguimiento de la ejecución.","Registran inicio/fin de transacciones y sus lecturas/escrituras.","Permiten deshacer [rollback] y rehacer [recovery] transacciones."],c:[2]},
+    {t:"En un sistema con log de tipo UNDO…",o:["Se lee el log desde el principio para recuperar (recovery).","Las escrituras en disco se hacen tras el commit en el log.","Las escrituras se hacen antes de finalizar con el commit en el log."],c:[2]},
+    {t:"En un sistema con log de tipo REDO…",o:["Se lee el log desde el final para recuperar (recovery).","Las escrituras en disco se hacen después del commit en el log.","Las escrituras se hacen antes del commit en el log."],c:[1]},
+    {t:"Si queremos usar el log para realizar copias de seguridad:",o:["Elegiremos un log de tipo UNDO.","Elegiremos un log de tipo REDO.","No se pueden hacer copias con el log."],c:[1]},
+    {t:"Si usamos un sistema basado en versiones [versioning]:",o:["Los datos nunca se modifican; se crean distintas versiones.","No se puede garantizar la acidez de las transacciones.","Necesitaremos más espacio en disco que con logs."],c:[0]},
+    {t:"Para implementar transacciones en un sistema distribuido podemos usar:",o:["Un log de transacciones.","Colas de mensajes.","Un protocolo de commit en dos o tres fases."],c:[2]},
+  ]
+},
+{
   id:"T7", code:"Tema 7", title:"Seguridad",
   q:[
     {t:"PGP se puede emplear para enviar correos electrónicos de forma segura.",o:["Verdadero","Falso"],c:[0]},
@@ -538,6 +560,144 @@ const TOPICS = [
 }
 ];
 
+const EXAMS = [
+{
+  id:"E1", code:"Prueba de examen 1", title:"Simulacro integral",
+  q:[
+    {t:"Un sistema cumple todos los casos de uso, pero cambiar una regla de negocio obliga a tocar pantallas, consultas SQL y servicios externos. La debilidad principal no está en...",o:["La funcionalidad observable.","La estructura y la soportabilidad del diseño.","El acoplamiento entre componentes."],c:[0]},
+    {t:"En una revisión técnica de diseño, una respuesta del tipo 'esto ya lo resolveremos al programar' es especialmente peligrosa cuando afecta a...",o:["Una decisión táctica de interfaz.","Una decisión arquitectónica difícil de revertir.","Un nombre de clase poco expresivo."],c:[1]},
+    {t:"En una arquitectura hexagonal o limpia, el detalle que conviene recordar no es el dibujo, sino que...",o:["Las dependencias apuntan hacia el núcleo del dominio.","La base de datos debe quedar en el centro.","La interfaz de usuario decide el modelo de dominio."],c:[0]},
+    {t:"En MDSD/MDA, el salto correcto es:",o:["Código -> PSM -> PIM.","PIM -> PSM -> código.","PSM -> PIM -> metamodelo M0."],c:[1]},
+    {t:"Elegir entre base de datos relacional y NoSQL suele ser una decisión arquitectónica porque...",o:["Afecta al coste de cambio y a varios atributos de calidad.","Sólo afecta a la sintaxis de las consultas.","Siempre puede revertirse sin migración."],c:[0]},
+    {t:"Un ADR bien escrito debería dejar claro sobre todo...",o:["La herramienta usada para dibujar el diagrama.","El porqué de la decisión y sus consecuencias.","El nombre del arquitecto y la fecha de entrega."],c:[1]},
+    {t:"Seguridad, rendimiento y disponibilidad en un modelo de vistas son normalmente...",o:["Vistas lógicas independientes.","Perspectivas que atraviesan varias vistas.","Detalles exclusivos de la vista física."],c:[1]},
+    {t:"Si alguien confunde layers y tiers, la corrección más precisa es:",o:["Layers son particiones lógicas; tiers son despliegues físicos.","Layers son servidores; tiers son paquetes de código.","No hay diferencia práctica."],c:[0]},
+    {t:"Pipes & filters es mala elección cuando el problema exige principalmente...",o:["Transformaciones encadenadas de datos.","Estado mutable compartido y coordinación fuerte entre etapas.","Procesamiento por fases."],c:[1]},
+    {t:"Una arquitectura de pizarra se justifica mejor cuando...",o:["Hay una estrategia determinista simple.","Distintos subsistemas proponen hipótesis parciales sobre un espacio de soluciones.","Se quiere evitar cualquier mecanismo de control."],c:[1]},
+    {t:"Desde el punto de vista arquitectónico, la base de datos es un detalle; lo que no es un detalle es...",o:["El modelo de datos de la aplicación.","El puerto TCP del servidor SQL.","El nombre comercial del SGBD."],c:[0]},
+    {t:"Active Record resulta delicado porque tiende a juntar...",o:["Presentación y red.","Datos externos, persistencia y lógica de dominio en el mismo objeto.","Mensajería asíncrona y colas."],c:[1]},
+    {t:"Un Table Data Gateway se diferencia de un Row Data Gateway porque...",o:["Representa una tabla o conjunto de filas, no una fila concreta.","Es un ORM completo.","Impide cualquier consulta SQL."],c:[0]},
+    {t:"Un ORM reduce el acoplamiento con la base de datos, pero no elimina mágicamente...",o:["La necesidad de modelar asociaciones, identidad y carga de objetos.","La existencia de objetos en memoria.","La posibilidad de usar repositorios."],c:[0]},
+    {t:"PreparedStatement evita la inyección SQL principalmente porque...",o:["Convierte la entrada del usuario en comentarios SQL.","Separa la estructura de la consulta de los valores parametrizados.","Cifra automáticamente la consulta."],c:[1]},
+    {t:"CQRS no significa necesariamente event sourcing; su idea mínima es...",o:["Separar comandos/escrituras y consultas/lecturas.","Usar siempre dos bases de datos físicas.","Sustituir SQL por colas."],c:[0]},
+    {t:"En CAP, cuando hay partición de red real, el compromiso inevitable está entre...",o:["Consistencia y disponibilidad.","Atomicidad y durabilidad.","Usabilidad y rendimiento."],c:[0]},
+    {t:"Un Data Warehouse clásico se caracteriza por ser...",o:["Operacional, volátil y orientado a transacciones cortas.","Histórico, integrado, no volátil y orientado a análisis.","Un lago de datos sin esquema ni metadatos."],c:[1]},
+    {t:"En GAV, el esquema global se define como vistas sobre las fuentes. Por eso...",o:["La reformulación suele ser más directa, pero añadir fuentes puede ser menos flexible.","Las fuentes se describen como vistas sobre el global.","No se pueden ejecutar consultas."],c:[0]},
+    {t:"En LAV, lo que se complica respecto a GAV es sobre todo...",o:["Responder consultas usando vistas de las fuentes.","Nombrar las tablas del esquema global.","Dibujar el mediated schema."],c:[0]},
+    {t:"GLAV se entiende mejor como...",o:["Una restricción que relaciona consultas sobre fuentes con consultas sobre el esquema global.","GAV sin esquema global.","LAV sin fuentes incompletas."],c:[0]},
+    {t:"Schema matching y schema mapping no son lo mismo: matching identifica correspondencias; mapping...",o:["Construye transformaciones o consultas entre esquemas.","Calcula hashes de contraseñas.","Resuelve conflictos de bloqueo."],c:[0]},
+    {t:"Data matching trabaja a nivel de...",o:["Tuplas o entidades que podrían referirse al mismo objeto real.","Sólo nombres de atributos.","Sólo diagramas UML."],c:[0]},
+    {t:"Un wrapper en integración de datos se encarga de...",o:["Enviar consultas a una fuente y transformar la respuesta al formato esperado.","Decidir el teorema CAP aplicable.","Garantizar no repudio mediante certificados."],c:[0]},
+    {t:"RPC intenta ocultar la red, pero una pregunta de examen suele buscar que recuerdes que...",o:["Las llamadas remotas tienen fallos, latencias y semántica distinta a las locales.","RPC nunca usa serialización.","RPC sólo funciona con HTTP."],c:[0]},
+    {t:"Marshalling es...",o:["Serializar parámetros y resultados para transportarlos entre procesos.","Balancear carga entre servidores web.","Firmar digitalmente una petición."],c:[0]},
+    {t:"La comunicación por colas mejora desacoplamiento temporal, pero normalmente complica...",o:["La gestión de errores y la trazabilidad de extremo a extremo.","La existencia de mensajes.","La posibilidad de escalar consumidores."],c:[0]},
+    {t:"En servicios web clásicos, la relación correcta es:",o:["SOAP describe, WSDL transporta, UDDI cifra.","SOAP mensajería, WSDL descripción, UDDI descubrimiento.","SOAP descubre, WSDL autentica, UDDI ejecuta."],c:[1]},
+    {t:"El patrón Broker aporta transparencia de localización, pero puede introducir...",o:["Un punto de fallo o cuello de botella.","Ausencia total de proxies.","Eliminación de la red."],c:[0]},
+    {t:"EDA y microservicios no son excluyentes. La diferencia que suele remarcarse es que EDA enfatiza...",o:["Eventos y comunicación asíncrona.","Una única base de datos compartida obligatoria.","Llamadas síncronas punto a punto."],c:[0]},
+    {t:"La atomicidad de ACID exige que una transacción...",o:["Termine completamente o no deje efectos.","Sea siempre más rápida que una consulta.","Use necesariamente tres fases."],c:[0]},
+    {t:"READ COMMITTED impide...",o:["Dirty reads, pero no necesariamente lecturas no repetibles ni phantoms.","Cualquier anomalía de concurrencia.","Sólo phantoms."],c:[0]},
+    {t:"En un UNDO log se guarda principalmente el valor antiguo; en un REDO log...",o:["El valor nuevo.","La clave pública del usuario.","Sólo el nombre de la tabla."],c:[0]},
+    {t:"El checkpointing sirve para...",o:["Reducir el tramo de log que hay que recorrer al recuperar.","Sustituir la durabilidad.","Evitar que existan transacciones concurrentes para siempre."],c:[0]},
+    {t:"El inconveniente clásico de 2-phase commit es que...",o:["Puede bloquear si falla el coordinador en un momento crítico.","No permite abortar.","No usa votos."],c:[0]},
+    {t:"Una saga en microservicios cambia ACID global por...",o:["Transacciones locales y compensaciones semánticas.","Un único commit distribuido obligatorio.","Bloqueo pesimista permanente."],c:[0]},
+    {t:"La tríada CIA se puede recordar como permisos sobre un activo: verlo, modificarlo y usarlo. En orden corresponde a...",o:["Confidencialidad, integridad y disponibilidad.","Integridad, disponibilidad y confidencialidad.","Autenticación, no repudio y auditoría."],c:[0]},
+    {t:"Para almacenar contraseñas, lo más correcto es...",o:["Usar funciones específicas como Argon2, bcrypt, scrypt o PBKDF2 con sal.","Guardar SHA-256(password) sin sal porque es rápido.","Cifrar con la clave pública del usuario y olvidarse."],c:[0]},
+    {t:"En una firma digital con criptografía asimétrica, normalmente se firma con...",o:["La clave privada del emisor y se verifica con su clave pública.","La clave pública del receptor y se verifica con una cookie.","La misma clave simétrica compartida por todos."],c:[0]},
+    {t:"CSRF aprovecha que el navegador...",o:["Envía automáticamente credenciales como cookies en peticiones a un sitio donde el usuario ya está autenticado.","Ejecuta SQL concatenado.","Permite leer cualquier certificado privado."],c:[0]}
+  ]
+},
+{
+  id:"E2", code:"Prueba de examen 2", title:"Simulacro integral",
+  q:[
+    {t:"Un diseño con mucha funcionalidad visible pero casi imposible de evolucionar está privilegiando...",o:["El comportamiento sobre la estructura.","La estructura sobre el comportamiento.","La soportabilidad sobre la funcionalidad."],c:[0]},
+    {t:"FURPS incluye supportability, que en una pregunta rebuscada suele acercarse más a...",o:["Facilidad de evolución, mantenimiento y soporte.","Número de funciones de negocio.","Belleza visual exclusivamente."],c:[0]},
+    {t:"La capa de servicio en aplicaciones de gestión suele colocarse para...",o:["Coordinar transacciones, seguridad y operaciones de aplicación entre presentación y dominio.","Guardar directamente filas de la base de datos.","Sustituir todos los objetos del dominio."],c:[0]},
+    {t:"En arquitectura limpia, que el dominio no dependa del framework significa que...",o:["El framework puede cambiar sin arrastrar la lógica central si las dependencias están bien orientadas.","No se puede usar ningún framework.","La interfaz gráfica debe contener las reglas de negocio."],c:[0]},
+    {t:"La frase 'todo es un compromiso' en arquitectura implica que...",o:["Una mejora en un atributo puede degradar otro.","Siempre hay que elegir la tecnología más nueva.","Las decisiones tácticas no importan."],c:[0]},
+    {t:"El modelo 4+1 usa escenarios para...",o:["Validar y conectar las otras vistas mediante casos de uso representativos.","Sustituir la vista física.","Eliminar la necesidad de requisitos."],c:[0]},
+    {t:"Un diagrama de despliegue pertenece más naturalmente a la vista...",o:["Física o de despliegue.","Lógica exclusivamente.","De clases del dominio."],c:[0]},
+    {t:"Microkernel se justifica cuando...",o:["Se quiere un núcleo mínimo extensible mediante plugins o variantes.","Todos los módulos deben depender de todos.","No hay necesidad de evolución."],c:[0]},
+    {t:"ATAM se centra en...",o:["Analizar escenarios de atributos de calidad y trade-offs arquitectónicos.","Medir líneas de código.","Generar automáticamente wrappers."],c:[0]},
+    {t:"CBAM añade a la evaluación arquitectónica una mirada explícita sobre...",o:["Coste, beneficio y retorno de inversión.","Sólo sintaxis SQL.","Sólo biometría."],c:[0]},
+    {t:"La frase 'la base de datos no es el modelo de datos' quiere evitar que...",o:["Un mecanismo de persistencia contamine la arquitectura del dominio.","Se use cualquier estructura de datos.","Se diseñen entidades."],c:[0]},
+    {t:"Si una clase auxiliar ofrece operaciones CRUD para una tabla sin meter reglas de negocio en la entidad, se parece más a...",o:["Table Data Gateway.","Active Record puro.","Pizarra."],c:[0]},
+    {t:"La carga perezosa en ORM puede mejorar eficiencia inicial, pero suele introducir el riesgo de...",o:["Accesos inesperados a la base de datos al navegar asociaciones.","Eliminar todas las consultas.","No poder representar relaciones."],c:[0]},
+    {t:"Un pool de conexiones mejora rendimiento porque...",o:["Reutiliza conexiones ya abiertas en vez de crearlas y destruirlas continuamente.","Cifra cada consulta SQL.","Convierte una base relacional en NoSQL."],c:[0]},
+    {t:"Fragmentación horizontal en bases distribuidas divide...",o:["Filas o tuplas según algún criterio.","Columnas o atributos.","El log en claves públicas."],c:[0]},
+    {t:"Un almacén de documentos como MongoDB encaja mejor cuando...",o:["Los registros pueden tener estructura flexible y anidada.","Se exige esquema tabular rígido idéntico para todas las filas.","Sólo se permiten grafos sin atributos."],c:[0]},
+    {t:"En OLAP, la prioridad típica es...",o:["Consultas complejas para apoyo a decisiones.","Transacciones cortas ACID de operación diaria.","Escrituras masivas de cajero automático."],c:[0]},
+    {t:"Data Lake frente a Data Warehouse: la pista habitual es...",o:["ELT y datos crudos frente a ETL y datos modelados.","Sólo datos relacionales normalizados frente a ficheros de log imposibles de consultar.","Ausencia total de gobierno frente a cumplimiento legal automático."],c:[0]},
+    {t:"En integración virtual de datos, frente a un Data Warehouse, los datos...",o:["Permanecen en las fuentes y se consultan mediante reformulación.","Se copian siempre antes en una base central.","Se eliminan tras cada consulta."],c:[0]},
+    {t:"Una fuente que sólo permite buscar por código postal impone...",o:["Patrones o restricciones de acceso que el mediador debe conocer.","Un problema de firma digital.","Una garantía de serializabilidad."],c:[0]},
+    {t:"Una medida fonética de similitud sería más útil para detectar...",o:["Cadenas que suenan parecido aunque se escriban distinto.","Dependencias circulares entre capas.","Deadlocks en 2PC."],c:[0]},
+    {t:"Un falso positivo en data matching significa que...",o:["Se emparejan dos entidades que realmente no son la misma.","No se detecta una pareja real.","Se rompe el esquema global."],c:[0]},
+    {t:"El emparejamiento colectivo aprovecha que...",o:["Las relaciones entre entidades pueden reforzar o debilitar coincidencias.","Cada entidad se decide siempre aislada.","Sólo importan las claves primarias internas."],c:[0]},
+    {t:"RoadRunner aprende wrappers sin esquema apoyándose en...",o:["Similitudes y diferencias estructurales entre páginas de una misma fuente.","Un log UNDO/REDO.","Certificados de una CA."],c:[0]},
+    {t:"Sockets TCP/IP son flexibles, pero frente a middleware de más alto nivel...",o:["Obligan a gestionar más detalles de comunicación.","Eliminan la necesidad de protocolos.","Incluyen automáticamente transacciones distribuidas."],c:[0]},
+    {t:"RMI es RPC llevado al mundo Java orientado a objetos porque...",o:["Permite invocar métodos de objetos remotos.","Sólo transporta ficheros HTML.","No necesita serialización."],c:[0]},
+    {t:"Kafka se aproxima más a...",o:["Mensajería distribuida y procesamiento de eventos.","Un ORM de Java.","Una función hash de contraseñas."],c:[0]},
+    {t:"En CORBA, el ORB se encarga de...",o:["Localizar objetos remotos y coordinar la invocación.","Diseñar el esquema estrella.","Evitar ataques CSRF."],c:[0]},
+    {t:"Publisher/subscriber reduce acoplamiento porque el publicador...",o:["No necesita conocer directamente a cada consumidor concreto.","Debe abrir una conexión TCP fija con cada consumidor.","Guarda todas las entidades del dominio."],c:[0]},
+    {t:"DDS es data-centric porque...",o:["Los participantes publican y leen datos asociados a topics, con QoS configurable.","Sólo define servicios SOAP.","Siempre usa una base monolítica."],c:[0]},
+    {t:"La consistencia de ACID no la garantiza mágicamente el SGBD si la transacción está mal programada: el programador debe...",o:["Mantener las invariantes de negocio al transformar estados consistentes.","Evitar todo commit.","Usar siempre READ UNCOMMITTED."],c:[0]},
+    {t:"Un phantom aparece cuando dentro de una transacción...",o:["Otra transacción inserta tuplas que cambian el resultado de una consulta repetida.","Se lee un valor sin commit que luego aborta.","Se pierde el log de redo."],c:[0]},
+    {t:"UNDO/REDO logging registra...",o:["Valor antiguo y valor nuevo.","Sólo commits globales.","Sólo claves de sesión."],c:[0]},
+    {t:"El bloqueo optimista asume que...",o:["Los conflictos son poco frecuentes y se detectan al validar/confirmar.","Siempre hay que bloquear antes de leer.","No existen conflictos de escritura."],c:[0]},
+    {t:"3-phase commit intenta mejorar 2PC porque...",o:["Reduce situaciones de bloqueo introduciendo una fase adicional.","Elimina toda comunicación.","Convierte AP en CA."],c:[0]},
+    {t:"Una vulnerabilidad es...",o:["Una debilidad que una amenaza podría explotar.","El daño ya materializado.","Una contramedida aplicada correctamente."],c:[0]},
+    {t:"Un certificado digital resuelve principalmente el problema de...",o:["Vincular una clave pública con una identidad mediante una autoridad de certificación.","Guardar el hash de una contraseña.","Evitar cualquier DoS."],c:[0]},
+    {t:"XSS consiste en...",o:["Inyectar código que se ejecuta en el navegador de otros usuarios.","Forzar al navegador a enviar una petición autenticada sin intención del usuario.","Modificar una referencia directa a un objeto."],c:[0]},
+    {t:"IDOR o referencias directas a objetos se explota cuando...",o:["El servidor acepta identificadores manipulados sin comprobar autorización real.","El cliente usa TLS 1.3.","La contraseña tiene sal."],c:[0]},
+    {t:"Un ataque Slowloris afecta a disponibilidad porque...",o:["Mantiene conexiones HTTP parciales abiertas para agotar recursos.","Rompe SHA-256 por fuerza bruta.","Sustituye certificados de una CA."],c:[0]}
+  ]
+},
+{
+  id:"E3", code:"Prueba de examen 3", title:"Simulacro integral",
+  q:[
+    {t:"Si un diseño parece simple para el usuario pero está lleno de dependencias implícitas, el problema está en confundir...",o:["Simplicidad aparente con simplicidad estructural.","Funcionalidad con requisitos explícitos.","Usabilidad con rendimiento."],c:[0]},
+    {t:"Un diseño modular de calidad no significa tener muchos módulos, sino...",o:["Responsabilidades cohesionadas y dependencias controladas.","Un fichero por cada método.","Ausencia total de interfaces."],c:[0]},
+    {t:"En aplicaciones de gestión, poner lógica de negocio en presentación suele ser mala idea porque...",o:["Dificulta reutilización, pruebas, seguridad y evolución.","Reduce el acoplamiento con el usuario.","Garantiza automáticamente rendimiento."],c:[0]},
+    {t:"La arquitectura cliente/servidor no equivale necesariamente a arquitectura multicapa porque...",o:["Cliente/servidor describe una distribución básica; multicapa separa responsabilidades lógicas.","Multicapa siempre usa un único proceso.","Cliente/servidor prohíbe bases de datos."],c:[0]},
+    {t:"La segunda ley de la arquitectura, según las diapositivas, insiste en que...",o:["El porqué pesa más que el cómo.","La implementación pesa más que los requisitos.","La documentación debe evitar alternativas."],c:[0]},
+    {t:"Una vista de procesos en 4+1 sirve para razonar sobre...",o:["Concurrencia, sincronización y rendimiento.","Clases del dominio exclusivamente.","Costes legales de cookies."],c:[0]},
+    {t:"Una limitación real de las vistas arquitectónicas es...",o:["Mantener consistencia entre ellas.","Que no permiten comunicar con stakeholders.","Que impiden separar preocupaciones."],c:[0]},
+    {t:"En capas estrictas, una capa normalmente...",o:["Usa sólo servicios de la capa inmediatamente inferior.","Puede saltar a cualquier capa inferior sin coste arquitectónico.","Debe conocer todas las capas superiores."],c:[0]},
+    {t:"En pizarra, el mecanismo de control decide...",o:["Qué fuente de conocimiento actúa sobre la pizarra en cada momento.","Qué tabla SQL se normaliza.","Qué certificado se revoca."],c:[0]},
+    {t:"Risk storming en validación arquitectónica se orienta a...",o:["Identificar riesgos periódicamente sobre decisiones y diseño.","Generar automáticamente código.","Medir sólo throughput."],c:[0]},
+    {t:"Un Row Data Gateway puede parecerse a Active Record, pero la diferencia clave es que Active Record...",o:["Suele incorporar lógica de dominio además de persistencia.","Nunca representa filas.","Sólo existe en bases NoSQL."],c:[0]},
+    {t:"La inyección SQL no se evita de forma fiable sólo con 'quitar comillas' porque...",o:["El problema es mezclar datos del usuario con sintaxis de consulta.","SQL no admite comillas.","Los usuarios nunca envían caracteres especiales."],c:[0]},
+    {t:"En bases distribuidas, replicar datos mejora disponibilidad y lectura, pero introduce...",o:["Problemas de propagación de actualizaciones y consistencia.","Imposibilidad de leer localmente.","Eliminación de fallos."],c:[0]},
+    {t:"Wide column stores se diferencian de una tabla relacional clásica porque...",o:["Las columnas pueden variar entre filas y familias de columnas.","No tienen claves.","Sólo almacenan imágenes."],c:[0]},
+    {t:"Una base de grafos es especialmente natural cuando la consulta importante depende de...",o:["Relaciones y recorridos entre entidades.","Sumas agregadas por dimensiones.","Sólo pares clave-valor aislados."],c:[0]},
+    {t:"En un cubo OLAP, roll-up implica...",o:["Subir en la jerarquía y agregar a menor detalle.","Bajar a más detalle.","Filtrar una dimensión concreta sin agregar."],c:[0]},
+    {t:"Esquema en estrella en ROLAP significa...",o:["Tabla de hechos central y dimensiones denormalizadas.","Una tabla por cada nivel de jerarquía normalizada.","Sólo documentos JSON."],c:[0]},
+    {t:"Un Data Lake sin gobierno de metadatos, linaje y seguridad corre el riesgo de convertirse en...",o:["Un repositorio opaco y difícil de explotar.","Un DW perfectamente modelado.","Un sistema CA por definición."],c:[0]},
+    {t:"La heterogeneidad de esquemas incluye...",o:["Nombres distintos, estructuras distintas y diferente granularidad.","Sólo errores ortográficos en cadenas.","Sólo particiones de red."],c:[0]},
+    {t:"La hipótesis de mundo abierto en LAV implica que...",o:["Las fuentes pueden ser incompletas y puede haber varias instancias globales compatibles.","El esquema global queda completamente determinado por las fuentes.","No se pueden añadir fuentes nuevas."],c:[0]},
+    {t:"GAV puede tener problemas si una fuente contiene información organizada con claves internas que no encajan en...",o:["La perspectiva del esquema integrado.","El log de transacciones.","La clave privada de una CA."],c:[0]},
+    {t:"Las restricciones de integridad en schema matching se usan para...",o:["Descartar emparejamientos incoherentes con claves, tipos o cardinalidades.","Cifrar esquemas.","Evitar phantoms."],c:[0]},
+    {t:"Canopies en data matching buscan...",o:["Reducir comparaciones agrupando candidatos con una medida barata antes de aplicar otra más cara.","Garantizar serializabilidad estricta.","Descubrir servicios SOAP."],c:[0]},
+    {t:"Stalker aprende wrappers...",o:["A partir de páginas etiquetadas y reglas de extracción sobre una estructura.","Analizando logs de redo.","Mediante certificados PKI."],c:[0]},
+    {t:"La diferencia entre comunicación síncrona y asíncrona aparece en arquitectura porque afecta a...",o:["Disponibilidad, tiempo de respuesta, gestión de errores y acoplamiento.","Sólo al color de la interfaz.","Sólo a la notación UML."],c:[0]},
+    {t:"Fire-and-forget es peligroso cuando...",o:["El emisor necesita saber con certeza si la operación terminó correctamente.","El mensaje es puramente informativo.","Hay consumidores tolerantes a duplicados."],c:[0]},
+    {t:"Un ESB o bus de integración puede ayudar a reducir conexiones punto a punto, pero también puede...",o:["Centralizar demasiado conocimiento y convertirse en cuello de botella organizativo/técnico.","Eliminar la necesidad de contratos.","Convertir SOAP en hash."],c:[0]},
+    {t:"OpenAPI se asocia mejor con...",o:["Especificación de HTTP APIs.","Descubrimiento UDDI clásico.","Gestión de logs UNDO."],c:[0]},
+    {t:"Un evento anémico en EDA es problemático porque...",o:["Contiene tan poca información que fuerza consultas adicionales y acopla consumidores.","Contiene demasiados datos cifrados.","Tiene firma digital."],c:[0]},
+    {t:"Request-reply messaging sobre eventos suele necesitar...",o:["Correlation ID o cola temporal para emparejar respuesta y petición.","Un único thread global.","Una tabla de hechos."],c:[0]},
+    {t:"Durabilidad en ACID se rompe si...",o:["Se informa commit al usuario antes de asegurar que los cambios sobreviven a un fallo.","Una lectura tarda mucho.","Una transacción no tiene interfaz gráfica."],c:[0]},
+    {t:"Serializable es el nivel que evita dirty reads, lecturas no repetibles y phantoms, pero...",o:["Puede reducir rendimiento por mayor aislamiento.","Siempre es más rápido.","Permite leer datos sin commit."],c:[0]},
+    {t:"En REDO logging, si no aparece commit de T tras un fallo...",o:["No debería haber datos de T en disco que rehacer.","Hay que rehacer T de todas formas.","Se confirma T automáticamente."],c:[0]},
+    {t:"Presumed abort y presumed commit en 2PC son optimizaciones para...",o:["Reducir mensajes y escrituras de log en casos frecuentes.","Eliminar participantes.","Evitar toda recuperación."],c:[0]},
+    {t:"Desde CAP, un sistema AP bajo partición acepta...",o:["Disponibilidad con posible inconsistencia temporal.","Consistencia fuerte bloqueando toda respuesta.","Ausencia de particiones por decreto."],c:[0]},
+    {t:"No repudio se relaciona más con...",o:["Firmas digitales y evidencia de autoría.","Sólo disponibilidad.","Sólo balanceo de carga."],c:[0]},
+    {t:"Un MAC/hash autenticado aporta integridad y autenticación del mensaje cuando...",o:["Existe una clave compartida o mecanismo criptográfico apropiado.","Se usa MD5 sin clave.","Se guarda en una cookie visible."],c:[0]},
+    {t:"La biometría sirve para autenticación, pero no es una contraseña perfecta porque...",o:["Puede tener falsos positivos/negativos y no se puede cambiar fácilmente si se compromete.","Nunca falla.","No requiere sensores."],c:[0]},
+    {t:"Una redirección no validada puede ser problema de seguridad porque...",o:["Puede facilitar phishing o saltos indebidos en flujos de autorización.","Mejora el aislamiento serializable.","Impide XSS automáticamente."],c:[0]},
+    {t:"TLS protege una comunicación web principalmente mediante...",o:["Cifrado, autenticación del servidor mediante certificados e integridad del canal.","Sólo ocultar el nombre del dominio.","Sustituir contraseñas por cookies sin firma."],c:[0]}
+  ]
+}
+];
+
 /* ============================================================
    ESTADO Y RENDER
    ============================================================ */
@@ -547,6 +707,7 @@ const answers = {};      // key qkey -> Set seleccionados
 
 function buildKeys(){
   TOPICS.forEach(t=>t.q.forEach((q,i)=>{q._key=t.id+"-"+i;q._topic=t.id;}));
+  EXAMS.forEach(t=>t.q.forEach((q,i)=>{q._key=t.id+"-"+i;q._topic=t.id;}));
 }
 buildKeys();
 
@@ -574,27 +735,51 @@ function groupTopics(topics){
 
 const MAIN_TOPICS = groupTopics(TOPICS);
 let activeTopics = new Set(MAIN_TOPICS.map(t=>t.id));
+let activeExam = null;
 
-function totalActive(){
-  return MAIN_TOPICS.filter(t=>activeTopics.has(t.id)).reduce((n,t)=>n+t.q.length,0);
+function currentSets(){
+  if(activeExam) return EXAMS.filter(t=>t.id===activeExam);
+  return MAIN_TOPICS.filter(t=>activeTopics.has(t.id));
+}
+
+function currentQuestions(){
+  return currentSets().flatMap(t=>t.q);
 }
 
 function isMulti(q){return q.c.length>1;}
+function isExamMode(){return !!activeExam;}
 
 function renderChips(){
   const box=document.getElementById('topicChips');
   box.innerHTML="";
   MAIN_TOPICS.forEach(t=>{
     const c=document.createElement('div');
-    c.className="chip"+(activeTopics.has(t.id)?" on":"");
+    c.className="chip"+(!activeExam && activeTopics.has(t.id)?" on":"");
     c.textContent=t.code+" · "+t.q.length;
     c.title=t.parts.join("\n");
     c.onclick=()=>{
+      activeExam=null;
       if(activeTopics.has(t.id)) activeTopics.delete(t.id);
       else activeTopics.add(t.id);
       render();
     };
     box.appendChild(c);
+  });
+  const exams=document.getElementById('examChips');
+  exams.innerHTML="";
+  EXAMS.forEach(t=>{
+    const c=document.createElement('div');
+    c.className="chip exam"+(activeExam===t.id?" on":"");
+    c.textContent=t.code+" · "+t.q.length;
+    c.title=t.title;
+    c.onclick=()=>{
+      activeExam=t.id;
+      revealed=false;
+      document.getElementById('result').classList.remove('show');
+      render();
+      window.scrollTo({top:0,behavior:'smooth'});
+    };
+    exams.appendChild(c);
   });
 }
 
@@ -602,9 +787,9 @@ function render(){
   renderChips();
   const quiz=document.getElementById('quiz');
   quiz.innerHTML="";
-  const list=MAIN_TOPICS.filter(t=>activeTopics.has(t.id));
+  const list=currentSets();
   if(list.length===0){
-    quiz.innerHTML='<div class="empty">Selecciona al menos un tema para empezar.</div>';
+    quiz.innerHTML='<div class="empty">Selecciona al menos un tema o una prueba de examen para empezar.</div>';
     updateHud();
     return;
   }
@@ -657,7 +842,7 @@ function toggle(q,oi){
   }
   if(sel.size===0) delete answers[q._key]; else answers[q._key]=sel;
   paintQ(q);
-  if(!isMulti(q)) gradeOne(q); // auto-corrige preguntas de respuesta única
+  if(!isMulti(q) && !isExamMode()) gradeOne(q); // en modo examen se corrige al revelar
   updateHud();
 }
 
@@ -696,7 +881,7 @@ function isCorrect(q){
 }
 
 function updateHud(){
-  const active=MAIN_TOPICS.filter(t=>activeTopics.has(t.id)).flatMap(t=>t.q);
+  const active=currentQuestions();
   const total=active.length;
   const answered=active.filter(isAnswered).length;
   const correct=active.filter(isCorrect).length;
@@ -708,7 +893,7 @@ function updateHud(){
 
 document.getElementById('btnReveal').onclick=()=>{
   revealed=true;
-  MAIN_TOPICS.filter(t=>activeTopics.has(t.id)).flatMap(t=>t.q).forEach(q=>{
+  currentQuestions().forEach(q=>{
     // si no contestada, márcala como pendiente mostrando la correcta
     gradeOne(q);
   });
@@ -716,7 +901,7 @@ document.getElementById('btnReveal').onclick=()=>{
 };
 
 function showResult(){
-  const active=MAIN_TOPICS.filter(t=>activeTopics.has(t.id)).flatMap(t=>t.q);
+  const active=currentQuestions();
   const total=active.length;
   const correct=active.filter(isCorrect).length;
   const pct=total?Math.round(correct/total*100):0;
@@ -759,11 +944,12 @@ function shuffleQuestionOptions(q){
   },[]);
 }
 
-document.getElementById('btnAll').onclick=()=>{activeTopics=new Set(MAIN_TOPICS.map(t=>t.id));render();};
-document.getElementById('btnNone').onclick=()=>{activeTopics=new Set();render();};
+document.getElementById('btnAll').onclick=()=>{activeExam=null;activeTopics=new Set(MAIN_TOPICS.map(t=>t.id));render();};
+document.getElementById('btnNone').onclick=()=>{activeExam=null;activeTopics=new Set();render();};
 document.getElementById('btnShuffle').onclick=()=>{
-  MAIN_TOPICS.forEach(t=>shuffleArray(t.q));
-  MAIN_TOPICS.flatMap(t=>t.q).forEach(shuffleQuestionOptions);
+  const sets=currentSets();
+  sets.forEach(t=>shuffleArray(t.q));
+  sets.flatMap(t=>t.q).forEach(shuffleQuestionOptions);
   Object.keys(answers).forEach(k=>delete answers[k]);
   revealed=false;
   document.getElementById('result').classList.remove('show');
@@ -772,8 +958,9 @@ document.getElementById('btnShuffle').onclick=()=>{
 
 // meta
 const grand=TOPICS.reduce((n,t)=>n+t.q.length,0);
+const examGrand=EXAMS.reduce((n,t)=>n+t.q.length,0);
 document.getElementById('bankMeta').textContent=
-  `${grand} preguntas · ${MAIN_TOPICS.length} temas · corrección automática`;
+  `${grand} preguntas de banco · ${EXAMS.length} pruebas de examen (${examGrand} preguntas) · ${MAIN_TOPICS.length} temas`;
 
 render();
 </script>
