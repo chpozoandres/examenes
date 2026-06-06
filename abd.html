@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de exámenes · Administración de Bases de Datos</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Newsreader:ital,opsz@0,6..72;1,6..72&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f3f0e8;
+    --surface: #fffdf8;
+    --surface-2: #e9e6dc;
+    --ink: #202421;
+    --muted: #606963;
+    --line: #c6c5bd;
+    --accent: #9d3129;
+    --blue: #296171;
+    --blue-bg: #e0ecef;
+    --green: #24613b;
+    --green-bg: #e2eee5;
+    --red-bg: #f4dfdc;
+    --shadow: 0 2px 12px rgba(32, 36, 33, .08);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    overflow-x: hidden;
+    color: var(--ink);
+    background: var(--paper);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+  button, textarea { font: inherit; }
+  .shell { width: min(1060px, calc(100% - 32px)); margin: 0 auto; padding-bottom: 90px; }
+
+  header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: end;
+    padding: 34px 0 24px;
+    border-bottom: 2px solid var(--ink);
+  }
+  header > * { min-width: 0; }
+  .eyebrow {
+    margin: 0 0 7px;
+    color: var(--accent);
+    font: 750 11px/1.25 ui-monospace, SFMono-Regular, Consolas, monospace;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  h1 {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: clamp(31px, 5vw, 49px);
+    line-height: 1.02;
+    letter-spacing: 0;
+  }
+  .header-meta {
+    max-width: 390px;
+    color: var(--muted);
+    text-align: right;
+    font: 650 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+    overflow-wrap: anywhere;
+  }
+
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    gap: 9px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0 -16px 24px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(243, 240, 232, .96);
+    backdrop-filter: blur(9px);
+  }
+  .spacer { flex: 1; }
+  .button {
+    min-height: 37px;
+    padding: 8px 13px;
+    border: 1px solid var(--ink);
+    border-radius: 5px;
+    color: white;
+    background: var(--ink);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 750;
+  }
+  .button:hover { border-color: var(--accent); background: var(--accent); }
+  .button.secondary { color: var(--ink); background: transparent; }
+  .button.secondary:hover { color: white; background: var(--ink); }
+
+  .dashboard {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, minmax(130px, .55fr));
+    margin-bottom: 32px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+  .dashboard > div { min-width: 0; padding: 14px 16px; border-right: 1px solid var(--line); }
+  .dashboard > div:last-child { border-right: 0; }
+  .dash-label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font: 750 10px/1.3 ui-monospace, SFMono-Regular, Consolas, monospace;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .dash-value { display: block; font-family: Georgia, serif; font-size: 20px; line-height: 1.25; overflow-wrap: anywhere; }
+  .dashboard > div:first-child .dash-value { font-size: 17px; }
+
+  .result {
+    display: none;
+    gap: 16px;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    margin: 0 0 28px;
+    padding: 18px;
+    border: 2px solid var(--ink);
+    background: var(--surface);
+  }
+  .result.visible { display: grid; }
+  .result-score { color: var(--accent); font-family: Georgia, serif; font-size: 38px; font-weight: 700; }
+  .result h2 { margin: 0 0 2px; font-size: 17px; }
+  .result p { margin: 0; color: var(--muted); font-size: 13px; }
+
+  .optional-section {
+    margin-top: 38px;
+    padding-top: 22px;
+    border-top: 3px double var(--ink);
+    scroll-margin-top: 95px;
+  }
+  .optional-head {
+    display: flex;
+    gap: 18px;
+    align-items: end;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .optional-head h2 { margin: 0; font-family: Georgia, serif; font-size: 27px; }
+  .optional-head p { max-width: 520px; margin: 0; color: var(--muted); text-align: right; font-size: 13px; }
+  .optional-badge {
+    display: inline-block;
+    margin-bottom: 5px;
+    padding: 3px 8px;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    color: var(--accent);
+    font: 750 10px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+    text-transform: uppercase;
+  }
+
+  .question {
+    margin-bottom: 24px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .question-head {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: start;
+    padding: 19px 20px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .question-number {
+    display: grid;
+    width: 43px;
+    height: 43px;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--accent);
+    background: var(--paper);
+    font: 750 13px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  .question h2 { margin: 0 0 7px; font-family: Georgia, serif; font-size: 22px; line-height: 1.2; letter-spacing: 0; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    padding: 2px 7px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--muted);
+    background: var(--paper);
+    font: 700 9.5px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+    text-transform: uppercase;
+  }
+  .tag.problem { border-color: #89adb7; color: var(--blue); background: var(--blue-bg); }
+  .regen {
+    padding: 6px 9px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--ink);
+    background: transparent;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+  .regen:hover { border-color: var(--ink); background: var(--surface-2); }
+
+  .statement { padding: 17px 20px; border-bottom: 1px solid var(--line); }
+  .statement p { margin: 0; }
+  .statement p + p { margin-top: 10px; }
+  .scenario {
+    display: block;
+    margin: 12px 0 0;
+    padding: 11px 13px;
+    border-left: 3px solid var(--blue);
+    color: #253e45;
+    background: var(--blue-bg);
+    font: 600 13px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace;
+    overflow-wrap: anywhere;
+  }
+  .data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 7px;
+    margin-top: 11px;
+  }
+  .datum { padding: 7px 9px; border: 1px solid var(--line); background: var(--paper); font-size: 13px; }
+  .statement table { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: 12px; }
+  .statement th, .statement td { height: 29px; padding: 5px 7px; border: 1px solid var(--line); text-align: left; }
+  .statement th { background: var(--surface-2); }
+  .statement tr.failure-marker td { border-top: 4px double var(--accent); color: var(--accent); text-align: center; font-weight: 750; }
+
+  .parts { counter-reset: part; }
+  .part {
+    counter-increment: part;
+    display: grid;
+    grid-template-columns: 39px minmax(0, 1fr);
+    gap: 12px;
+    padding: 17px 20px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .part:last-child { border-bottom: 0; }
+  .part::before {
+    content: counter(part, lower-alpha) ")";
+    color: var(--accent);
+    font: 750 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  .part-prompt { margin: 0 0 11px; font-weight: 650; overflow-wrap: anywhere; }
+  .answer-box {
+    width: 100%;
+    min-height: 88px;
+    resize: vertical;
+    padding: 10px 11px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--ink);
+    background: white;
+    line-height: 1.45;
+  }
+  .answer-box:focus { outline: 2px solid rgba(41, 97, 113, .25); border-color: var(--blue); }
+  .options { display: grid; gap: 7px; }
+  .option {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 9px;
+    align-items: start;
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--ink);
+    background: white;
+    cursor: pointer;
+    text-align: left;
+  }
+  .option:hover { border-color: var(--ink); }
+  .letter {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--muted);
+    background: var(--paper);
+    font: 750 10px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  .option.selected { border-color: var(--accent); background: #f8ebe8; }
+  .option.selected .letter { border-color: var(--accent); color: white; background: var(--accent); }
+  .option.correct { border-color: var(--green); background: var(--green-bg); }
+  .option.correct .letter { border-color: var(--green); color: white; background: var(--green); }
+  .option.wrong { border-color: var(--accent); background: var(--red-bg); }
+  .option.wrong .letter { border-color: var(--accent); color: white; background: var(--accent); }
+
+  .solution {
+    display: none;
+    margin-top: 12px;
+    padding: 11px 12px;
+    border-left: 3px solid var(--green);
+    color: #27372d;
+    background: var(--green-bg);
+    font-size: 13.5px;
+  }
+  .solution.visible { display: block; }
+  .solution strong { color: var(--green); }
+  .solution.incorrect { border-left-color: var(--accent); background: var(--red-bg); }
+  .solution.incorrect strong { color: var(--accent); }
+  .solution.unanswered { border-left-color: var(--blue); background: var(--blue-bg); }
+  .solution.unanswered strong { color: var(--blue); }
+  .solution ul { margin: 7px 0 0 18px; padding: 0; }
+  .solution table { width: 100%; margin-top: 8px; border-collapse: collapse; background: rgba(255,255,255,.52); }
+  .solution th, .solution td { padding: 5px 7px; border: 1px solid rgba(36,97,59,.28); text-align: left; }
+  code { padding: 1px 4px; border-radius: 3px; background: rgba(32,36,33,.08); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .92em; }
+
+  footer { margin-top: 38px; padding-top: 17px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+
+  @media (max-width: 720px) {
+    .shell { width: min(100% - 22px, 1060px); }
+    header { grid-template-columns: 1fr; gap: 9px; padding-top: 25px; }
+    .header-meta { max-width: none; text-align: left; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-left: -11px;
+      margin-right: -11px;
+      padding: 10px 11px;
+    }
+    .toolbar .button { width: 100%; padding-left: 7px; padding-right: 7px; font-size: 12px; }
+    .spacer { display: none; }
+    .dashboard { grid-template-columns: 1fr 1fr; }
+    .dashboard > div { border-bottom: 1px solid var(--line); }
+    .dashboard > div:nth-child(2) { border-right: 0; }
+    .dashboard > div:nth-last-child(-n+2) { border-bottom: 0; }
+    .question-head { grid-template-columns: 42px minmax(0, 1fr); padding: 15px 13px 13px; }
+    .question-number { width: 36px; height: 36px; }
+    .question h2 { font-size: 20px; }
+    .regen { grid-column: 2; justify-self: start; }
+    .optional-head { display: block; }
+    .optional-head p { margin-top: 5px; text-align: left; }
+    .statement { padding: 14px 13px; }
+    .part { grid-template-columns: 27px minmax(0, 1fr); gap: 7px; padding: 15px 13px; }
+    .scenario { font-size: 12px; }
+  }
+
+  @media print {
+    body, .question, .dashboard { background: white; box-shadow: none; }
+    .shell { width: 100%; padding: 0; }
+    header { padding-top: 0; }
+    .toolbar, .regen, footer, .result { display: none !important; }
+    .question { margin-bottom: 16px; }
+    .question-head, .statement, .part { break-inside: avoid; }
+    .answer-box { min-height: 65px; }
+    .solution { display: none !important; }
+  }
+</style>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body class="subject-page">
+<div class="site-nav-wrap">
+  <nav class="site-nav" aria-label="Asignaturas">
+    <a href="index.html">Exámenes</a>
+    <a href="abd.html" aria-current="page">ABD</a>
+    <a href="isi.html">ISI</a>
+    <a href="smd.html">SMD</a>
+  </nav>
+</div>
+<main class="shell">
+  <header>
+    <div>
+      <p class="eyebrow">Administración de Bases de Datos</p>
+      <h1>Generador de exámenes</h1>
+    </div>
+    <div class="header-meta">Temas 4, 5 y 6 · entre 3 y 5 ejercicios · problemas y teoría</div>
+  </header>
+
+  <div class="toolbar">
+    <button class="button" id="newExam" type="button">Nuevo examen</button>
+    <button class="button secondary" id="toggleSolutions" type="button">Ver soluciones</button>
+    <button class="button secondary" id="resetAnswers" type="button">Limpiar respuestas</button>
+    <span class="spacer"></span>
+    <button class="button secondary" id="printExam" type="button">Imprimir</button>
+  </div>
+
+  <section class="dashboard" aria-label="Resumen del examen">
+    <div>
+      <span class="dash-label">Examen</span>
+      <span class="dash-value" id="examLabel">Modelo 1</span>
+    </div>
+    <div>
+      <span class="dash-label">Ejercicios obligatorios</span>
+      <span class="dash-value" id="questionCount">0</span>
+    </div>
+    <div>
+      <span class="dash-label">Apartados</span>
+      <span class="dash-value" id="partCount">0</span>
+    </div>
+    <div>
+      <span class="dash-label">Tipo test</span>
+      <span class="dash-value" id="testCount">0</span>
+    </div>
+  </section>
+
+  <section class="result" id="result">
+    <div class="result-score" id="resultScore">0/0</div>
+    <div>
+      <h2>Corrección orientativa</h2>
+      <p id="resultText"></p>
+    </div>
+  </section>
+
+  <section id="exam"></section>
+
+  <section class="optional-section">
+    <div class="optional-head">
+      <div>
+        <span class="optional-badge">Opcional</span>
+        <h2>Tema 6</h2>
+      </div>
+      <p>Preguntas adicionales de bases de datos distribuidas. No cuentan en el total de ejercicios obligatorios.</p>
+    </div>
+    <section id="optionalExam"></section>
+  </section>
+
+  <footer>
+    Generación basada en las diapositivas, los apuntes y los ejercicios resueltos de los temas evaluados.
+  </footer>
+</main>
+
+<script>
+const LETTERS = ["A", "B", "C", "D"];
+let serial = 0;
+let examNumber = 0;
+let questions = [];
+let optionalQuestions = [];
+let answers = new Map();
+let solutionsVisible = false;
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function choice(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function shuffle(items) {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function sample(items, amount) {
+  return shuffle(items).slice(0, amount);
+}
+
+function nextId(prefix) {
+  serial += 1;
+  return `${prefix}-${serial}`;
+}
+
+function openPart(prompt, solution, source = "") {
+  return { type: "open", prompt, solution, source };
+}
+
+function testPart(prompt, options, correct, explanation) {
+  const mixed = shuffle(options.map((text, index) => ({ text, correct: index === correct })));
+  return {
+    type: "test",
+    prompt,
+    options: mixed.map(item => item.text),
+    correct: mixed.findIndex(item => item.correct),
+    solution: explanation
+  };
+}
+
+function formatList(items) {
+  return items.length ? items.join(", ") : "ninguna";
+}
+
+const LITERAL_PROBLEM_PROMPTS = {
+  timestampTotal: "¿En qué orden se ejecutarían las transacciones según el algoritmo de ordenación total?",
+  timestampPartial: "¿En qué orden se ejecutarían las transacciones según el algoritmo de ordenación parcial?",
+  timestampModified: "¿En qué orden se ejecutarían las transacciones según el algoritmo de ordenación parcial modificado?",
+  lockingM4: "Suponiendo que el bloqueo de un átomo por una transacción se realiza justo antes de la primera lectura de dicho átomo y que los des-bloqueos se producen justo después de la última sentencia de cada transacción, considerando que las operaciones que sólo involucran lectura se realizan en el modo M1 y las que involucran escritura en el modo M4, que el modo M4 es compatible con M1 e incompatible consigo mismo, y que el modo M1 es compatible consigo mismo, ¿en qué orden se ejecutan las transacciones según el método de bloqueo en dos fases?",
+  lockingM5: "Suponiendo que el bloqueo de un átomo por una transacción se realiza justo antes de la primera lectura de dicho átomo y que los des-bloqueos se producen justo después de la última sentencia de cada transacción, considerando que las operaciones que sólo involucran lectura se realizan en el modo M1 y las que involucran escritura en el modo M5, que el modo M5 es incompatible con cualquier otro y que M1 es compatible consigo mismo, ¿en qué orden se ejecutan las transacciones según el método de bloqueo en dos fases?",
+  modificationsShort: "Indica el contenido de la tabla de modificaciones.",
+  recoveryAtLine: "Si ocurriera un fallo donde se muestra la doble línea de la tabla de modificaciones, ¿qué haría el sistema después de recuperarse con cada una de las transacciones y cuáles serían los valores de los datos después de la recuperación?",
+  graphDraw: "Dibujar el grafo de precedencia.",
+  graphSerial: "Determinar la serializabilidad del plan y, en su caso, dar la secuencia de transacciones.",
+  graphDrawJustify: "Dibuja el grafo de precedencia del plan. Justifica cada enlace.",
+  graphSerialJustify: "Indica si es serializable o no; en caso afirmativo, muestra algún plan en serie equivalente. Justifica la respuesta.",
+  graphCombined: "Para el siguiente plan de ejecución, construye el grafo de precedencia e indica si la ejecución es o no serializable. En caso afirmativo, dar alguna secuencia de transacciones equivalente."
+};
+
+function generateRecoveryProblem() {
+  const data = sample(["A", "B", "C", "D", "E"], 4);
+  const tx = shuffle(["T1", "T2", "T3"]);
+  const initial = Object.fromEntries(data.map(item => [item, randomInt(2, 10) * 5]));
+  const updated = Object.fromEntries(data.map(item => {
+    let value;
+    do value = initial[item] + choice([-15, -10, -5, 5, 10, 15, 20]);
+    while (value < 0);
+    return [item, value];
+  }));
+  const postCheckpointCommits = Math.random() < .58;
+  const stable = { tx: tx[0], item: data[0] };
+  const active = { tx: tx[1], items: [data[1], data[3]] };
+  const post = { tx: tx[2], item: data[2] };
+  const operations = [
+    `start ${stable.tx}`,
+    `start ${active.tx}`,
+    `Escribe(${stable.tx}, ${stable.item}=${updated[stable.item]})`,
+    `commit ${stable.tx}`,
+    `Escribe(${active.tx}, ${active.items[0]}=${updated[active.items[0]]})`,
+    `CHECKPOINT`,
+    `start ${post.tx}`,
+    `Escribe(${post.tx}, ${post.item}=${updated[post.item]})`,
+    `Escribe(${active.tx}, ${active.items[1]}=${updated[active.items[1]]})`
+  ];
+  if (postCheckpointCommits) operations.push(`commit ${post.tx}`);
+
+  const actionPost = postCheckpointCommits ? "REDO" : "UNDO";
+  const finalValues = {
+    [stable.item]: updated[stable.item],
+    [active.items[0]]: initial[active.items[0]],
+    [post.item]: postCheckpointCommits ? updated[post.item] : initial[post.item],
+    [active.items[1]]: initial[active.items[1]]
+  };
+  const logRows = [
+    [stable.tx, "start", "", "", ""],
+    [active.tx, "start", "", "", ""],
+    [stable.tx, "update", stable.item, initial[stable.item], updated[stable.item]],
+    [stable.tx, "commit", "", "", ""],
+    [active.tx, "update", active.items[0], initial[active.items[0]], updated[active.items[0]]],
+    ["—", "checkpoint", "", "", ""],
+    [post.tx, "start", "", "", ""],
+    [post.tx, "update", post.item, initial[post.item], updated[post.item]],
+    [active.tx, "update", active.items[1], initial[active.items[1]], updated[active.items[1]]]
+  ];
+  if (postCheckpointCommits) logRows.push([post.tx, "commit", "", "", ""]);
+  const promptTable = `<table><thead><tr><th>Ti</th><th>Estado/operación</th><th>Dato</th><th>V. anterior</th><th>V. nuevo</th></tr></thead><tbody>${
+    logRows.map(row => `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td></td><td></td></tr>`).join("")
+  }<tr class="failure-marker"><td colspan="5">FALLO</td></tr></tbody></table>`;
+  const table = `<table><thead><tr><th>Ti</th><th>Estado/operación</th><th>Dato</th><th>Anterior</th><th>Nuevo</th></tr></thead><tbody>${
+    logRows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("")
+  }</tbody></table>`;
+
+  const tablePart = openPart(
+    LITERAL_PROBLEM_PROMPTS.modificationsShort,
+    table,
+    "Ejercicios Resueltos 1"
+  );
+  const recoveryPart = openPart(
+    LITERAL_PROBLEM_PROMPTS.recoveryAtLine,
+    `<ul><li><b>${stable.tx}</b>: ninguna operación; confirmó antes del checkpoint.</li><li><b>${active.tx}</b>: <b>UNDO</b>; no tiene commit.</li><li><b>${post.tx}</b>: <b>${actionPost}</b>; ${postCheckpointCommits ? "tiene commit después del checkpoint" : "no llegó a confirmar"}.</li></ul><p>Valores tras la recuperación: <b>${data.map(item => `${item}=${finalValues[item]}`).join(", ")}</b>.</p>`,
+    "Ejercicios Resueltos 3"
+  );
+
+  return {
+    id: nextId("recovery"),
+    factory: generateRecoveryProblem,
+    topic: "Tema 4",
+    kind: "Problema",
+    title: "Recuperación y tabla de modificaciones",
+    statement: `
+      <p>Considera el siguiente plan de ejecución de transacciones entrelazadas y la tabla de modificaciones:</p>
+      <span class="scenario">${operations.join(" · ")}</span>
+      <div class="data-grid">${data.map(item => `<span class="datum">Valor inicial: <b>${item}=${initial[item]}</b></span>`).join("")}</div>
+      ${promptTable}
+    `,
+    parts: shuffle([tablePart, recoveryPart])
+  };
+}
+
+function randomMerge(programs) {
+  const positions = programs.map(() => 0);
+  const merged = [];
+  while (positions.some((position, index) => position < programs[index].length)) {
+    const available = positions
+      .map((position, index) => position < programs[index].length ? index : -1)
+      .filter(index => index >= 0);
+    const selected = choice(available);
+    merged.push({ ...programs[selected][positions[selected]] });
+    positions[selected] += 1;
+  }
+  return merged;
+}
+
+function precedenceGraph(schedule) {
+  const edges = new Set();
+  for (let i = 0; i < schedule.length; i++) {
+    for (let j = i + 1; j < schedule.length; j++) {
+      const a = schedule[i];
+      const b = schedule[j];
+      if (a.tx !== b.tx && a.item === b.item && (a.type === "W" || b.type === "W")) {
+        edges.add(`${a.tx}>${b.tx}`);
+      }
+    }
+  }
+  const nodes = [...new Set(schedule.map(op => op.tx))].sort((a, b) => a - b);
+  const orders = [];
+  function permute(prefix, remaining) {
+    if (!remaining.length) {
+      const position = Object.fromEntries(prefix.map((node, index) => [node, index]));
+      if ([...edges].every(edge => {
+        const [from, to] = edge.split(">").map(Number);
+        return position[from] < position[to];
+      })) orders.push(prefix);
+      return;
+    }
+    remaining.forEach((node, index) => {
+      permute([...prefix, node], [...remaining.slice(0, index), ...remaining.slice(index + 1)]);
+    });
+  }
+  permute([], nodes);
+  return { edges: [...edges].sort(), orders };
+}
+
+function simulateTimestamp(schedule, programs, mode) {
+  const queue = schedule.map(op => ({ ...op, original: op.tx }));
+  const values = {};
+  const events = [];
+  const completion = [];
+  let nextTx = Math.max(...schedule.map(op => op.tx)) + 1;
+  let guard = 0;
+  while (queue.length && guard < 100) {
+    guard += 1;
+    const op = queue.shift();
+    const state = values[op.item] || (mode === "total" ? { R: 0 } : { RR: 0, WR: 0 });
+    values[op.item] = state;
+    let abort = false;
+    let ignored = false;
+    if (mode === "total") {
+      if (op.tx < state.R) abort = true;
+      else state.R = op.tx;
+    } else if (op.type === "R") {
+      if (op.tx < state.WR) abort = true;
+      else state.RR = Math.max(state.RR, op.tx);
+    } else {
+      if (op.tx < state.RR) abort = true;
+      else if (op.tx < state.WR) {
+        if (mode === "modified") ignored = true;
+        else abort = true;
+      }
+      else state.WR = op.tx;
+    }
+
+    if (abort) {
+      const newTx = nextTx++;
+      events.push(`T${op.tx} aborta en ${op.type === "R" ? "Lee" : "Escribe"}(T${op.tx},${op.item}) y se reinicia como T${newTx}`);
+      for (let index = queue.length - 1; index >= 0; index--) {
+        if (queue[index].tx === op.tx) queue.splice(index, 1);
+      }
+      programs.find(program => program[0].tx === op.original).forEach(programOp => {
+        queue.push({ ...programOp, tx: newTx, original: op.original });
+      });
+    } else {
+      if (ignored) events.push(`Escribe(T${op.tx},${op.item}) se ignora por ser obsoleta`);
+      if (!queue.some(pending => pending.tx === op.tx)) completion.push(op.original);
+    }
+  }
+  return {
+    events,
+    completion: [...new Set(completion)].map(tx => `T${tx}`),
+    controllers: Object.entries(values).map(([item, state]) => {
+      return mode === "total"
+        ? `${item}: R=${state.R}`
+        : `${item}: RR=${state.RR}, WR=${state.WR}`;
+    })
+  };
+}
+
+const PLAN_TEMPLATES = [
+  {
+    source: "Ejercicios Resueltos 1",
+    operations: [
+      [3, "R", 2], [1, "R", 0], [2, "R", 1], [3, "W", 1],
+      [1, "R", 1], [1, "W", 0], [3, "W", 2], [2, "W", 1]
+    ]
+  },
+  {
+    source: "Ejercicios Resueltos 2",
+    operations: [
+      [3, "R", 2], [1, "R", 0], [2, "R", 1], [3, "R", 1],
+      [1, "R", 1], [1, "W", 0], [3, "W", 2], [2, "W", 1]
+    ]
+  },
+  {
+    source: "Ejercicios Resueltos 3",
+    operations: [
+      [1, "R", 0], [2, "R", 0], [1, "W", 0], [3, "R", 1],
+      [2, "W", 0], [3, "W", 1], [3, "W", 2], [2, "W", 3]
+    ]
+  },
+  {
+    source: "Relación de problemas 4",
+    operations: [
+      [1, "R", 0], [2, "R", 1], [3, "R", 0], [1, "W", 1],
+      [2, "W", 2], [3, "W", 0], [1, "R", 2], [3, "W", 1]
+    ]
+  }
+];
+
+function buildRandomPlan(excludedSource = "") {
+  const candidates = PLAN_TEMPLATES.filter(template => template.source !== excludedSource);
+  const template = choice(candidates.length ? candidates : PLAN_TEMPLATES);
+  const items = sample(["A", "B", "C", "D", "E"], 4);
+  const txMap = Object.fromEntries(shuffle([1, 2, 3]).map((label, index) => [index + 1, label]));
+  const schedule = template.operations.map(([tx, type, item]) => ({
+    tx: txMap[tx],
+    type,
+    item: items[item]
+  }));
+  const programs = [1, 2, 3].map(tx =>
+    schedule.filter(operation => operation.tx === tx).map(operation => ({ ...operation }))
+  );
+  return {
+    source: template.source,
+    programs,
+    schedule,
+    graph: precedenceGraph(schedule)
+  };
+}
+
+function operationText(operation) {
+  return `${operation.type === "R" ? "Lee" : "Escribe"}(T${operation.tx},${operation.item})`;
+}
+
+function scheduleText(schedule) {
+  return schedule.map(operationText).join(" · ");
+}
+
+function simulateTwoPhase(schedule, programs, writeMode) {
+  const pending = schedule.map(operation => ({ ...operation }));
+  const blocked = new Set();
+  const held = {};
+  const acquired = new Set();
+  const execution = [];
+  const waits = [];
+  const completion = [];
+  const requirements = Object.fromEntries(programs.map(program => {
+    const tx = program[0].tx;
+    const byItem = {};
+    [...new Set(program.map(operation => operation.item))].forEach(item => {
+      byItem[item] = program.some(operation => operation.item === item && operation.type === "W")
+        ? writeMode
+        : "M1";
+    });
+    return [tx, byItem];
+  }));
+
+  function compatible(requested, current) {
+    if (requested === "M5" || current === "M5") return false;
+    if (requested === "M4" && current === "M4") return false;
+    return true;
+  }
+
+  function blockersFor(operation) {
+    const requested = requirements[operation.tx][operation.item];
+    return (held[operation.item] || []).filter(lock =>
+      lock.tx !== operation.tx && !compatible(requested, lock.mode)
+    );
+  }
+
+  function release(tx) {
+    Object.keys(held).forEach(item => {
+      const before = held[item].length;
+      held[item] = held[item].filter(lock => lock.tx !== tx);
+      if (before !== held[item].length) execution.push(`UNLOCK(T${tx},${item})`);
+    });
+    blocked.clear();
+  }
+
+  let guard = 0;
+  while (pending.length && guard < 100) {
+    guard += 1;
+    let progress = false;
+    for (let index = 0; index < pending.length;) {
+      const operation = pending[index];
+      if (blocked.has(operation.tx)) {
+        index += 1;
+        continue;
+      }
+      const key = `${operation.tx}:${operation.item}`;
+      if (!acquired.has(key)) {
+        const mode = requirements[operation.tx][operation.item];
+        const blockers = blockersFor(operation);
+        if (blockers.length) {
+          blocked.add(operation.tx);
+          waits.push(`T${operation.tx} espera ${mode}(${operation.item}) retenido por ${blockers.map(lock => `T${lock.tx}/${lock.mode}`).join(" y ")}`);
+          index += 1;
+          continue;
+        }
+        acquired.add(key);
+        (held[operation.item] ||= []).push({ tx: operation.tx, mode });
+        execution.push(`LOCK(T${operation.tx},${operation.item},${mode})`);
+      }
+      execution.push(operationText(operation));
+      pending.splice(index, 1);
+      progress = true;
+      if (!pending.some(candidate => candidate.tx === operation.tx)) {
+        completion.push(`T${operation.tx}`);
+        release(operation.tx);
+      }
+    }
+    if (!progress) break;
+  }
+  return {
+    execution,
+    waits: [...new Set(waits)],
+    completion,
+    deadlock: pending.length > 0
+  };
+}
+
+function timestampSolution(result) {
+  return `<p>${result.events.length
+    ? result.events.map(event => `• ${event}`).join("<br>")
+    : "El plan se ejecuta sin abortos ni escrituras ignoradas."
+  }</p><p>Orden de finalización de las transacciones originales: <b>${result.completion.join("–")}</b>.</p><p>Controladores finales: <b>${result.controllers.join("; ")}</b>.</p>`;
+}
+
+function generateExecutionProblem(includeGraphPart = false) {
+  const plan = buildRandomPlan();
+  const total = simulateTimestamp(plan.schedule, plan.programs, "total");
+  const partial = simulateTimestamp(plan.schedule, plan.programs, "partial");
+  const modified = simulateTimestamp(plan.schedule, plan.programs, "modified");
+  const writeMode = choice(["M4", "M5"]);
+  const locking = simulateTwoPhase(plan.schedule, plan.programs, writeMode);
+  const algorithmParts = [
+    openPart(
+      LITERAL_PROBLEM_PROMPTS.timestampTotal,
+      timestampSolution(total),
+      "Ejercicios Resueltos 2"
+    ),
+    openPart(
+      LITERAL_PROBLEM_PROMPTS.timestampPartial,
+      timestampSolution(partial),
+      "Relación de problemas 4"
+    ),
+    openPart(
+      LITERAL_PROBLEM_PROMPTS.timestampModified,
+      timestampSolution(modified),
+      "Ejercicios Resueltos 1"
+    ),
+    openPart(
+      writeMode === "M4"
+        ? LITERAL_PROBLEM_PROMPTS.lockingM4
+        : LITERAL_PROBLEM_PROMPTS.lockingM5,
+      `<p>Plan ejecutado:</p><span class="scenario">${locking.execution.join(" · ")}</span><p>Esperas: <b>${formatList(locking.waits)}</b>.</p><p>${
+        locking.deadlock
+          ? "El plan queda bloqueado antes de completar todas las transacciones."
+          : `Orden de terminación: <b>${locking.completion.join("–")}</b>.`
+      }</p>`,
+      "examen-junio-2022"
+    )
+  ];
+  const foreignParts = algorithmParts.filter(part =>
+    part.source !== plan.source && !(part.source === "examen-junio-2022" && locking.deadlock)
+  );
+  const selected = sample(foreignParts, randomInt(2, Math.min(3, foreignParts.length)));
+  if (includeGraphPart) {
+    const edges = plan.graph.edges.map(edge => {
+      const [from, to] = edge.split(">");
+      return `T${from}→T${to}`;
+    });
+    const orders = plan.graph.orders.map(order => order.map(tx => `T${tx}`).join("–"));
+    selected.push(openPart(
+      LITERAL_PROBLEM_PROMPTS.graphCombined,
+      `<p>Aristas: <b>${formatList(edges)}</b>.</p><p>${
+        orders.length
+          ? `El grafo es acíclico. Órdenes serie equivalentes: <b>${orders.join(", ")}</b>.`
+          : "El grafo contiene un ciclo y el plan no es serializable por conflictos."
+      }</p>`,
+      plan.source === "Relación de problemas 4" ? "Ejercicios Resueltos 3" : "Relación de problemas 4"
+    ));
+  }
+  return {
+    id: nextId("execution"),
+    factory: () => generateExecutionProblem(includeGraphPart),
+    topic: "Tema 5",
+    kind: "Problema",
+    title: "Ejecución de un plan entrelazado",
+    sourceTemplate: plan.source,
+    partSources: selected.map(part => part.source),
+    statement: `
+      <p>Considera el siguiente plan de ejecución de transacciones entrelazadas:</p>
+      <span class="scenario">${scheduleText(plan.schedule)}</span>
+    `,
+    parts: shuffle(selected)
+  };
+}
+
+function generateGraphProblem(excludedSource = "") {
+  const plan = buildRandomPlan(excludedSource);
+  const edges = plan.graph.edges.map(edge => {
+    const [from, to] = edge.split(">");
+    return `T${from}→T${to}`;
+  });
+  const orders = plan.graph.orders.map(order => order.map(tx => `T${tx}`).join("–"));
+  const conflictingPairs = [];
+  for (let i = 0; i < plan.schedule.length; i++) {
+    for (let j = i + 1; j < plan.schedule.length; j++) {
+      const first = plan.schedule[i];
+      const second = plan.schedule[j];
+      if (first.tx !== second.tx && first.item === second.item && (first.type === "W" || second.type === "W")) {
+        conflictingPairs.push(`${operationText(first)} ≺ ${operationText(second)}`);
+      }
+    }
+  }
+  const cycle = (() => {
+    if (orders.length) return "";
+    for (const edge of plan.graph.edges) {
+      const [from, to] = edge.split(">");
+      if (plan.graph.edges.includes(`${to}>${from}`)) return `T${from}→T${to}→T${from}`;
+    }
+    return "existe un ciclo dirigido entre las precedencias mostradas";
+  })();
+  const graphSolution = `Los nodos son T1, T2 y T3. Las aristas son <b>${formatList(edges)}</b>.<ul>${conflictingPairs.map(pair => `<li>${pair}</li>`).join("")}</ul>`;
+  const serialSolution = orders.length
+    ? `Es serializable porque el grafo es acíclico. Órdenes equivalentes: <b>${orders.join(", ")}</b>.`
+    : `No es serializable porque ${cycle}.`;
+  const practicalParts = choice([
+    [
+      openPart(LITERAL_PROBLEM_PROMPTS.graphDraw, graphSolution, "Relación de problemas 4"),
+      openPart(LITERAL_PROBLEM_PROMPTS.graphSerial, serialSolution, "Relación de problemas 4")
+    ],
+    [
+      openPart(LITERAL_PROBLEM_PROMPTS.graphDrawJustify, graphSolution, "Relación de problemas 4"),
+      openPart(LITERAL_PROBLEM_PROMPTS.graphSerialJustify, serialSolution, "Relación de problemas 4")
+    ]
+  ]);
+  return {
+    id: nextId("graph"),
+    factory: () => generateGraphProblem(excludedSource),
+    topic: "Tema 5",
+    kind: "Problema",
+    title: "Grafo de precedencia y serialización",
+    sourceTemplate: plan.source,
+    statement: `
+      <p>Para el siguiente plan de ejecución:</p>
+      <span class="scenario">${scheduleText(plan.schedule)}</span>
+    `,
+    parts: practicalParts
+  };
+}
+
+const THEORY = [
+  { topic: "T4", prompt: "Diferencie autenticación y autorización.", answer: "La autenticación comprueba la identidad; la autorización determina qué operaciones puede realizar esa identidad.", distractors: ["La autenticación concede roles y la autorización cifra contraseñas.", "Son dos nombres para el mismo control de acceso."] },
+  { topic: "T4", prompt: "Diferencie ADMIN OPTION y GRANT OPTION.", answer: "ADMIN OPTION permite propagar privilegios de sistema o roles; GRANT OPTION permite propagar un privilegio sobre un objeto.", distractors: ["Ambas se aplican únicamente a privilegios sobre tablas.", "GRANT OPTION crea usuarios y ADMIN OPTION confirma transacciones."] },
+  { topic: "T4", prompt: "Explique atomicidad y durabilidad.", answer: "Atomicidad: todo o nada. Durabilidad: los cambios confirmados sobreviven a fallos posteriores.", distractors: ["Atomicidad aísla transacciones y durabilidad valida restricciones.", "Atomicidad conserva copias y durabilidad impide toda concurrencia."] },
+  { topic: "T4", prompt: "¿Cuándo se aplican UNDO y REDO según el esquema del tema?", answer: "UNDO cuando hay start sin commit; REDO cuando aparecen start y commit dentro de la parte relevante del log.", distractors: ["UNDO con commit y REDO sin commit.", "REDO solo después de un backup en frío."] },
+  { topic: "T4", prompt: "Compare copia física en frío, física en caliente y copia lógica.", answer: "La fría exige detener la instancia; la caliente permite uso y necesita ARCHIVELOG; la lógica exporta objetos sin reproducir su estructura física.", distractors: ["Las tres son imágenes idénticas de datafiles.", "La copia lógica exige detener la instancia y ARCHIVELOG."] },
+  { topic: "T4", prompt: "¿Qué diferencia existe entre ROLLBACK y ROLLBACK TO SAVEPOINT?", answer: "ROLLBACK deshace la transacción completa; ROLLBACK TO retrocede solo hasta el punto indicado y permite continuar.", distractors: ["ROLLBACK confirma y ROLLBACK TO exporta.", "Ambas operaciones hacen commit automático."] },
+  { topic: "T5", prompt: "Defina conflicto entre operaciones.", answer: "Dos operaciones de transacciones distintas entran en conflicto si acceden al mismo dato y al menos una es escritura.", distractors: ["Hay conflicto siempre que las transacciones comiencen a distinta hora.", "Solo dos lecturas sobre el mismo dato entran en conflicto."] },
+  { topic: "T5", prompt: "Caracterice un plan serializable por conflictos.", answer: "Su grafo de precedencia es acíclico y una ordenación topológica proporciona un plan serie equivalente.", distractors: ["Su grafo debe ser completo y contener un ciclo.", "Todas las transacciones deben ejecutarse sin entrelazado."] },
+  { topic: "T5", prompt: "Enuncie la regla esencial del bloqueo en dos fases.", answer: "Después de liberar el primer bloqueo, la transacción no puede adquirir ninguno nuevo.", distractors: ["Cada lectura debe liberar el bloqueo antes de escribir.", "Solo se permite bloquear un dato por examen."] },
+  { topic: "T5", prompt: "Compare DIE-WAIT y WOUND-WAIT.", answer: "En DIE-WAIT una joven aborta ante una antigua; en WOUND-WAIT una antigua hace abortar a la joven y una joven espera a la antigua.", distractors: ["Ambos hacen esperar siempre a la transacción antigua.", "DIE-WAIT elimina marcas temporales y WOUND-WAIT elimina bloqueos."] },
+  { topic: "T5", prompt: "¿Qué cambia la regla de escritura modificada de Thomas?", answer: "Una escritura obsoleta respecto a WR puede ignorarse en vez de abortar, siempre que no viole una lectura posterior.", distractors: ["Toda escritura antigua obliga a deshacer la más nueva.", "Convierte cada escritura en una nueva lectura."] },
+  { topic: "T5", prompt: "Describa las fases del control optimista por validación.", answer: "Lectura, validación y escritura; antes de volcar cambios se comprueban conflictos mediante los conjuntos de acceso.", distractors: ["Preparación, precommit y commit.", "Bloqueo, checkpoint y recuperación."] },
+  { topic: "T6", prompt: "Diferencie fragmentación horizontal y vertical.", answer: "La horizontal separa filas mediante selecciones; la vertical separa columnas mediante proyecciones y conserva una clave para recomponer.", distractors: ["La horizontal separa columnas y la vertical filas.", "Ambas consisten en crear copias completas."] },
+  { topic: "T6", prompt: "Explique las transparencias de localización, fragmentación y replicación.", answer: "Ocultan respectivamente el nodo físico, la división de una relación y la existencia de varias copias.", distractors: ["Ocultan usuario, contraseña y privilegios.", "Son tres mecanismos exclusivos de recuperación."] },
+  { topic: "T6", prompt: "¿Por qué 2PC puede bloquear participantes?", answer: "Un participante que votó T lista debe esperar la decisión global si falla el coordinador; no puede confirmar ni abortar unilateralmente.", distractors: ["Porque ningún participante escribe log.", "Porque 2PC exige una copia completa en cada nodo."] },
+  { topic: "T6", prompt: "Compare los protocolos de mayoría y copia primaria.", answer: "Mayoría solicita más de la mitad de las réplicas; copia primaria concentra el bloqueo y la propagación en una copia designada.", distractors: ["Ambos consultan una única réplica elegida al azar.", "Mayoría solo sirve sin réplicas y copia primaria no permite escrituras."] },
+  { topic: "T6", prompt: "¿Qué función cumple un gateway entre SGBD heterogéneos?", answer: "Traduce operaciones, tipos, diccionarios y protocolos entre gestores diferentes.", distractors: ["Sustituye el protocolo de compromiso.", "Elimina la necesidad de un catálogo distribuido."] },
+  { topic: "T6", prompt: "¿Por qué conviene ejecutar selecciones antes de transferir datos?", answer: "Reduce el tamaño de los resultados intermedios y, por tanto, el coste de comunicación de la consulta distribuida.", distractors: ["Aumenta el número de réplicas disponibles.", "Evita cualquier necesidad de bloqueo."] }
+];
+
+const THEORY_TESTS = [
+  {
+    topic: "T4",
+    prompt: "¿Qué asociación es correcta?",
+    options: ["ADMIN OPTION se aplica a sistema o roles; GRANT OPTION, a objetos.", "ADMIN OPTION se aplica a objetos; GRANT OPTION, a usuarios y sesiones.", "Ambas opciones se aplican únicamente a privilegios de sistema."],
+    correct: 0,
+    explanation: "ADMIN OPTION permite propagar privilegios de sistema o roles; GRANT OPTION acompaña a privilegios sobre objetos."
+  },
+  {
+    topic: "T4",
+    prompt: "Tras el último checkpoint, T1 confirma y T2 queda activa. ¿Qué tratamiento corresponde?",
+    options: ["REDO(T1) y UNDO(T2).", "UNDO(T1) y REDO(T2).", "UNDO de ambas transacciones."],
+    correct: 0,
+    explanation: "La transacción confirmada después del checkpoint se rehace; la que carece de commit se deshace."
+  },
+  {
+    topic: "T4",
+    prompt: "¿Qué combinación describe una copia física en caliente?",
+    options: ["Instancia activa y modo ARCHIVELOG.", "Instancia detenida y exportación lógica.", "Instancia activa y redo deshabilitado."],
+    correct: 0,
+    explanation: "La copia en caliente admite usuarios activos y necesita los redo archivados para recuperar una imagen consistente."
+  },
+  {
+    topic: "T4",
+    prompt: "¿Qué efecto produce ROLLBACK TO S?",
+    options: ["Deshace lo posterior a S y mantiene activa la transacción.", "Confirma lo anterior a S y termina la transacción.", "Deshace toda la transacción y elimina la sesión."],
+    correct: 0,
+    explanation: "El retroceso hasta un savepoint es parcial y permite continuar trabajando dentro de la misma transacción."
+  },
+  {
+    topic: "T5",
+    prompt: "¿Qué condición identifica serializabilidad por conflictos?",
+    options: ["El grafo de precedencia es acíclico.", "El grafo de espera contiene un ciclo.", "Cada transacción utiliza un único dato."],
+    correct: 0,
+    explanation: "La ausencia de ciclos permite obtener uno o varios órdenes serie mediante ordenación topológica."
+  },
+  {
+    topic: "T5",
+    prompt: "Con RR(A)=8 y WR(A)=5, T7 intenta escribir A. ¿Qué ocurre?",
+    options: ["T7 aborta por la lectura posterior.", "La escritura se ignora por WR(A).", "La escritura se acepta con WR(A)=7."],
+    correct: 0,
+    explanation: "La marca de T7 es menor que RR(A); una transacción posterior ya ha leído el dato y la escritura no puede aceptarse."
+  },
+  {
+    topic: "T5",
+    prompt: "¿Qué secuencia viola el protocolo de bloqueo en dos fases?",
+    options: ["LOCK(A), UNLOCK(A), LOCK(B).", "LOCK(A), LOCK(B), UNLOCK(A).", "LOCK-S(A), LOCK-S(B), COMMIT."],
+    correct: 0,
+    explanation: "Después del primer desbloqueo comienza la fase decreciente y ya no se pueden solicitar nuevos bloqueos."
+  },
+  {
+    topic: "T5",
+    prompt: "En WOUND-WAIT, T1 es más antigua que T3 y solicita un recurso de T3. ¿Qué sucede?",
+    options: ["T1 hace abortar a T3.", "T1 espera a que termine T3.", "Ambas conservan el recurso."],
+    correct: 0,
+    explanation: "La transacción antigua hiere a la joven; una transacción joven sí esperaría ante una más antigua."
+  },
+  {
+    topic: "T6",
+    prompt: "¿Cómo se reconstruye una fragmentación vertical correcta?",
+    options: ["Mediante reunión por la clave común.", "Mediante unión de todas las columnas.", "Mediante diferencia entre fragmentos."],
+    correct: 0,
+    explanation: "Los fragmentos verticales comparten una clave que permite reunir los atributos de cada tupla."
+  },
+  {
+    topic: "T6",
+    prompt: "Un participante de 2PC solo conserva T lista. ¿En qué situación está?",
+    options: ["Preparado y pendiente de la decisión global.", "Abortado y listo para ejecutar UNDO.", "Confirmado y listo para ejecutar REDO."],
+    correct: 0,
+    explanation: "Después de votar afirmativamente no puede decidir por sí mismo; debe consultar al coordinador u otros nodos."
+  },
+  {
+    topic: "T6",
+    prompt: "Un dato posee siete réplicas. ¿Cuál es la mayoría mínima?",
+    options: ["Cuatro concesiones.", "Tres concesiones.", "Siete concesiones."],
+    correct: 0,
+    explanation: "El protocolo exige más de la mitad de las copias: con siete, la mayoría mínima es cuatro."
+  },
+  {
+    topic: "T6",
+    prompt: "¿Qué aporta Preejecutar T en 3PC?",
+    options: ["Un estado intermedio antes del compromiso final.", "Una réplica primaria para cada participante.", "Un mecanismo de fragmentación del catálogo."],
+    correct: 0,
+    explanation: "El estado precommit registra que todos estaban preparados antes de emitir la orden definitiva de ejecución."
+  },
+  {
+    topic: "T6",
+    prompt: "¿Qué transparencia oculta la existencia de varias copias?",
+    options: ["Transparencia de replicación.", "Transparencia de fragmentación.", "Transparencia de localización."],
+    correct: 0,
+    explanation: "La replicación permite operar con un objeto lógico sin seleccionar explícitamente una de sus copias."
+  },
+  {
+    topic: "T6",
+    prompt: "¿Qué estrategia suele reducir el tráfico de una reunión distribuida?",
+    options: ["Filtrar en origen antes de transferir.", "Mover primero la relación más grande.", "Replicar ambos operandos antes de filtrar."],
+    correct: 0,
+    explanation: "Aplicar selecciones y proyecciones cerca de los datos reduce los resultados intermedios enviados por la red."
+  }
+];
+
+function generateTheoryQuestion(allowedTopics = ["T4", "T5"], optional = false) {
+  const format = choice(["test", "development", "multipart"]);
+  const theoryPool = THEORY.filter(item => allowedTopics.includes(item.topic));
+  const testPool = THEORY_TESTS.filter(item => allowedTopics.includes(item.topic));
+  let parts;
+  let selected;
+  if (format === "test") {
+    selected = sample(testPool, Math.min(3, testPool.length));
+    parts = selected.map(item =>
+      testPart(item.prompt, item.options, item.correct, item.explanation)
+    );
+  } else if (format === "development") {
+    selected = sample(theoryPool, Math.min(2, theoryPool.length));
+    parts = selected.map(item =>
+      openPart(item.prompt, item.answer)
+    );
+  } else {
+    const testItem = choice(testPool);
+    const developmentItems = sample(theoryPool, Math.min(2, theoryPool.length));
+    selected = [testItem, ...developmentItems];
+    parts = [
+      testPart(testItem.prompt, testItem.options, testItem.correct, testItem.explanation),
+      ...developmentItems.map(item => openPart(item.prompt, item.answer))
+    ];
+  }
+  const topicSet = [...new Set(selected.map(item => item.topic))].join(" · ");
+  return {
+    id: nextId(optional ? "optional" : "theory"),
+    factory: () => generateTheoryQuestion(allowedTopics, optional),
+    topic: topicSet,
+    kind: format === "test" ? "Tipo test" : format === "development" ? "Desarrollo" : "Por apartados",
+    title: optional
+      ? "Cuestiones opcionales del tema 6"
+      : format === "test"
+      ? "Cuestiones tipo test"
+      : format === "development"
+        ? "Pregunta de desarrollo"
+        : "Cuestiones teóricas por apartados",
+    statement: format === "test"
+      ? "<p>Seleccione la opción correcta en cada apartado.</p>"
+      : format === "development"
+        ? "<p>Responda de forma precisa, indicando las diferencias o condiciones esenciales.</p>"
+        : "<p>Resuelva los apartados. El primero es tipo test y los restantes son de desarrollo.</p>",
+    parts
+  };
+}
+
+function generateExam() {
+  const exerciseCount = randomInt(3, 5);
+  const firstTheory = generateTheoryQuestion();
+  const executionProblem = generateExecutionProblem(exerciseCount === 3);
+  const generated = [
+    generateRecoveryProblem(),
+    executionProblem,
+    firstTheory
+  ];
+  if (exerciseCount >= 4) generated.push(generateGraphProblem(executionProblem.sourceTemplate));
+  if (exerciseCount === 5) {
+    let secondTheory = generateTheoryQuestion();
+    let attempts = 0;
+    while (secondTheory.kind === firstTheory.kind && attempts < 8) {
+      secondTheory = generateTheoryQuestion();
+      attempts += 1;
+    }
+    generated.push(secondTheory);
+  }
+  questions = shuffle(generated);
+  optionalQuestions = [generateTheoryQuestion(["T6"], true)];
+  examNumber += 1;
+  answers = new Map();
+  solutionsVisible = false;
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function regenerateQuestion(index, optional = false) {
+  const collection = optional ? optionalQuestions : questions;
+  const oldQuestion = collection[index];
+  collection[index] = oldQuestion.factory();
+  for (const key of [...answers.keys()]) {
+    if (key.startsWith(`${oldQuestion.id}:`)) answers.delete(key);
+  }
+  solutionsVisible = false;
+  render();
+}
+
+function answerKey(question, partIndex) {
+  return `${question.id}:${partIndex}`;
+}
+
+function selectOption(question, partIndex, optionIndex) {
+  if (solutionsVisible) return;
+  answers.set(answerKey(question, partIndex), optionIndex);
+  renderExam();
+}
+
+function renderPart(question, part, partIndex) {
+  const key = answerKey(question, partIndex);
+  const selected = answers.get(key);
+  const wrapper = document.createElement("div");
+  wrapper.className = "part";
+  const content = document.createElement("div");
+  content.innerHTML = `<p class="part-prompt">${part.prompt}</p>`;
+
+  if (part.type === "test") {
+    const options = document.createElement("div");
+    options.className = "options";
+    part.options.forEach((optionText, optionIndex) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "option";
+      if (!solutionsVisible && selected === optionIndex) button.classList.add("selected");
+      if (solutionsVisible) {
+        if (optionIndex === part.correct) button.classList.add("correct");
+        else if (selected === optionIndex) button.classList.add("wrong");
+      }
+      button.innerHTML = `<span class="letter">${LETTERS[optionIndex]}</span><span>${optionText}</span>`;
+      button.addEventListener("click", () => selectOption(question, partIndex, optionIndex));
+      options.appendChild(button);
+    });
+    content.appendChild(options);
+  } else if (question.kind !== "Problema") {
+    const textarea = document.createElement("textarea");
+    textarea.className = "answer-box";
+    textarea.setAttribute("aria-label", `Respuesta al apartado ${partIndex + 1}`);
+    textarea.value = answers.get(key) || "";
+    textarea.addEventListener("input", event => answers.set(key, event.target.value));
+    content.appendChild(textarea);
+  }
+
+  const solution = document.createElement("div");
+  const isUnanswered = part.type === "test" && selected === undefined;
+  const isIncorrect = part.type === "test" && selected !== undefined && selected !== part.correct;
+  solution.className = `solution${solutionsVisible ? " visible" : ""}${isIncorrect ? " incorrect" : ""}${isUnanswered ? " unanswered" : ""}`;
+  const label = part.type === "test"
+    ? selected === part.correct
+      ? "Correcto."
+      : selected === undefined
+        ? `Sin responder. Respuesta correcta: ${LETTERS[part.correct]}.`
+        : `Respuesta correcta: ${LETTERS[part.correct]}.`
+    : "Solución orientativa.";
+  solution.innerHTML = `<strong>${label}</strong> ${part.solution}`;
+  content.appendChild(solution);
+  wrapper.appendChild(content);
+  return wrapper;
+}
+
+function renderQuestion(question, index, optional = false) {
+  const article = document.createElement("article");
+  article.className = "question";
+  article.innerHTML = `
+    <div class="question-head">
+      <div class="question-number">${index + 1}</div>
+      <div>
+        <h2>${question.title}</h2>
+        <div class="tags">
+          ${question.topic.split(" · ").map(topic => `<span class="tag">${topic}</span>`).join("")}
+          ${optional ? '<span class="tag problem">Opcional</span>' : ""}
+          <span class="tag problem">${question.kind}</span>
+          <span class="tag">${question.parts.length} apartados</span>
+        </div>
+      </div>
+      <button class="regen" type="button">Regenerar pregunta</button>
+    </div>
+    <div class="statement">${question.statement}</div>
+    <div class="parts"></div>
+  `;
+  article.querySelector(".regen").addEventListener("click", () => regenerateQuestion(index, optional));
+  const parts = article.querySelector(".parts");
+  question.parts.forEach((part, partIndex) => parts.appendChild(renderPart(question, part, partIndex)));
+  return article;
+}
+
+function renderExam() {
+  const container = document.getElementById("exam");
+  const optionalContainer = document.getElementById("optionalExam");
+  container.innerHTML = "";
+  optionalContainer.innerHTML = "";
+  questions.forEach((question, index) => container.appendChild(renderQuestion(question, index)));
+  optionalQuestions.forEach((question, index) => optionalContainer.appendChild(renderQuestion(question, index, true)));
+  updateSummary();
+}
+
+function updateSummary() {
+  const parts = questions.flatMap(question => question.parts);
+  const tests = parts.filter(part => part.type === "test");
+  document.getElementById("examLabel").textContent = `Modelo ${examNumber}`;
+  document.getElementById("questionCount").textContent = questions.length;
+  document.getElementById("partCount").textContent = parts.length;
+  document.getElementById("testCount").textContent = tests.length;
+  document.getElementById("toggleSolutions").textContent = solutionsVisible ? "Ocultar soluciones" : "Ver soluciones";
+  const result = document.getElementById("result");
+  result.classList.toggle("visible", solutionsVisible);
+  if (solutionsVisible) {
+    let correct = 0;
+    let answered = 0;
+    questions.forEach(question => question.parts.forEach((part, index) => {
+      if (part.type !== "test") return;
+      const value = answers.get(answerKey(question, index));
+      if (value !== undefined) answered += 1;
+      if (value === part.correct) correct += 1;
+    }));
+    document.getElementById("resultScore").textContent = tests.length ? `${correct}/${tests.length}` : "—";
+    document.getElementById("resultText").textContent = tests.length
+      ? `${answered} apartados tipo test respondidos. Los apartados de desarrollo deben compararse con la solución orientativa.`
+      : "Este modelo no contiene apartados autocorregibles; compare cada respuesta con la solución orientativa.";
+  }
+}
+
+function render() {
+  renderExam();
+}
+
+document.getElementById("newExam").addEventListener("click", generateExam);
+document.getElementById("toggleSolutions").addEventListener("click", () => {
+  solutionsVisible = !solutionsVisible;
+  renderExam();
+  if (solutionsVisible) document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "center" });
+});
+document.getElementById("resetAnswers").addEventListener("click", () => {
+  answers = new Map();
+  solutionsVisible = false;
+  renderExam();
+});
+document.getElementById("printExam").addEventListener("click", () => window.print());
+
+generateExam();
+</script>
+</body>
+</html>

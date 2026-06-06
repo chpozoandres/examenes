@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de exámenes · Sistemas Multidimensionales</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Newsreader:ital,opsz@0,6..72;1,6..72&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f1eee6;
+    --surface: #fffdf8;
+    --surface-2: #e7e3d9;
+    --ink: #202522;
+    --muted: #626b65;
+    --line: #c7c5bb;
+    --accent: #a13a2e;
+    --teal: #1e6570;
+    --teal-bg: #dfecef;
+    --green: #2c6845;
+    --green-bg: #e2eee5;
+    --gold: #8a6b22;
+    --gold-bg: #f1e9d2;
+    --shadow: 0 2px 12px rgba(32, 37, 34, .08);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    overflow-x: hidden;
+    color: var(--ink);
+    background: var(--paper);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+  button { font: inherit; }
+  .shell { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding-bottom: 80px; }
+
+  header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 28px;
+    align-items: end;
+    padding: 34px 0 23px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .eyebrow {
+    margin: 0 0 7px;
+    color: var(--accent);
+    font: 750 11px/1.25 ui-monospace, SFMono-Regular, Consolas, monospace;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  h1 {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: clamp(31px, 5vw, 49px);
+    line-height: 1.02;
+    letter-spacing: 0;
+  }
+  .header-meta {
+    max-width: 390px;
+    color: var(--muted);
+    text-align: right;
+    font: 650 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+
+  .sources {
+    padding: 20px 0 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-label {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--muted);
+    font: 750 10px/1.3 ui-monospace, SFMono-Regular, Consolas, monospace;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+  .source-grid {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .source-link {
+    display: grid;
+    min-height: 51px;
+    place-items: center;
+    padding: 7px 5px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    color: var(--ink);
+    background: var(--surface);
+    font-size: 12px;
+    font-weight: 750;
+    text-align: center;
+    text-decoration: none;
+  }
+  .source-link:hover { border-color: var(--accent); color: var(--accent); }
+  .source-link small {
+    display: block;
+    color: var(--muted);
+    font: 650 9px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+    text-transform: uppercase;
+  }
+
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0 -16px 25px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(241, 238, 230, .96);
+    backdrop-filter: blur(9px);
+  }
+  .spacer { flex: 1; }
+  .button {
+    min-height: 38px;
+    padding: 8px 13px;
+    border: 1px solid var(--ink);
+    border-radius: 5px;
+    color: white;
+    background: var(--ink);
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 750;
+  }
+  .button:hover { border-color: var(--accent); background: var(--accent); }
+  .button.secondary { color: var(--ink); background: transparent; }
+  .button.secondary:hover { color: white; background: var(--ink); }
+  .button.active { border-color: var(--teal); color: white; background: var(--teal); }
+
+  .dashboard {
+    display: grid;
+    grid-template-columns: 1.5fr repeat(3, minmax(130px, .55fr));
+    margin-bottom: 26px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+  .dashboard > div { min-width: 0; padding: 14px 16px; border-right: 1px solid var(--line); }
+  .dashboard > div:last-child { border-right: 0; }
+  .dash-label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font: 750 10px/1.3 ui-monospace, SFMono-Regular, Consolas, monospace;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .dash-value {
+    display: block;
+    font-family: Georgia, serif;
+    font-size: 19px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+  .dashboard > div:first-child .dash-value { font-size: 16px; }
+
+  .context {
+    display: none;
+    margin: 0 0 25px;
+    padding: 20px;
+    border: 2px solid var(--ink);
+    background: var(--surface);
+  }
+  .context.visible { display: block; }
+  .context h2 { margin: 0 0 8px; font-family: Georgia, serif; font-size: 24px; }
+  .context p { margin: 0; }
+  .context p + p { margin-top: 9px; }
+  .context-data {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 7px;
+    margin-top: 13px;
+  }
+  .context-data span { padding: 7px 9px; border: 1px solid var(--line); background: var(--paper); font-size: 13px; }
+
+  .question {
+    margin-bottom: 22px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .question-head {
+    display: grid;
+    grid-template-columns: 50px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: start;
+    padding: 18px 19px 15px;
+    border-bottom: 1px solid var(--line);
+  }
+  .question-number {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--accent);
+    background: var(--paper);
+    font: 750 13px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  .question h2 { margin: 0 0 7px; font-family: Georgia, serif; font-size: 21px; line-height: 1.2; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    padding: 2px 7px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--muted);
+    background: var(--paper);
+    font: 700 9.5px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+    text-transform: uppercase;
+  }
+  .tag.topic { border-color: #87abb2; color: var(--teal); background: var(--teal-bg); }
+  .tag.new { border-color: #b89d56; color: var(--gold); background: var(--gold-bg); }
+  .source-button {
+    padding: 6px 9px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--ink);
+    background: transparent;
+    font-size: 11px;
+    font-weight: 750;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .source-button:hover { border-color: var(--accent); color: var(--accent); }
+  .statement { padding: 16px 19px; border-bottom: 1px solid var(--line); }
+  .statement p { margin: 0; }
+  .statement p + p { margin-top: 9px; }
+  .scenario {
+    display: block;
+    margin-top: 11px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--teal);
+    color: #253e42;
+    background: var(--teal-bg);
+    font-size: 13.5px;
+  }
+  .parts { counter-reset: part; }
+  .part {
+    counter-increment: part;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 11px;
+    padding: 16px 19px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .part:last-child { border-bottom: 0; }
+  .part::before {
+    content: counter(part, lower-alpha) ")";
+    color: var(--accent);
+    font: 750 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  .part-prompt { margin: 0; font-weight: 650; overflow-wrap: anywhere; }
+  .solution {
+    display: none;
+    margin-top: 11px;
+    padding: 11px 12px;
+    border-left: 3px solid var(--green);
+    color: #27372d;
+    background: var(--green-bg);
+    font-size: 13.5px;
+  }
+  .solution.visible { display: block; }
+  .solution strong { color: var(--green); }
+  .solution ul { margin: 7px 0 0 18px; padding: 0; }
+  .solution li + li { margin-top: 3px; }
+  code { padding: 1px 4px; border-radius: 3px; background: rgba(32,37,34,.08); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .92em; }
+
+  .empty { padding: 55px 20px; color: var(--muted); text-align: center; }
+  footer { margin-top: 38px; padding-top: 17px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+
+  @media (max-width: 850px) {
+    .source-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+  @media (max-width: 720px) {
+    .shell { width: min(100% - 22px, 1080px); }
+    header { grid-template-columns: 1fr; gap: 9px; padding-top: 25px; }
+    .header-meta { max-width: none; text-align: left; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-left: -11px;
+      margin-right: -11px;
+      padding: 10px 11px;
+    }
+    .toolbar .button { width: 100%; padding-left: 7px; padding-right: 7px; font-size: 11.5px; }
+    .spacer { display: none; }
+    .dashboard { grid-template-columns: 1fr 1fr; }
+    .dashboard > div { border-bottom: 1px solid var(--line); }
+    .dashboard > div:nth-child(2) { border-right: 0; }
+    .dashboard > div:nth-last-child(-n+2) { border-bottom: 0; }
+    .question-head { grid-template-columns: 41px minmax(0, 1fr); padding: 15px 13px 13px; }
+    .question-number { width: 36px; height: 36px; }
+    .question h2 { font-size: 19px; }
+    .source-button { grid-column: 2; justify-self: start; }
+    .statement { padding: 14px 13px; }
+    .part { grid-template-columns: 27px minmax(0, 1fr); gap: 7px; padding: 15px 13px; }
+  }
+  @media (max-width: 480px) {
+    .source-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media print {
+    body, .question, .dashboard, .context { background: white; box-shadow: none; }
+    .shell { width: 100%; padding: 0; }
+    header { padding-top: 0; }
+    .sources, .toolbar, .source-button, footer { display: none !important; }
+    .question { margin-bottom: 14px; }
+    .question-head, .statement, .part { break-inside: avoid; }
+    .solution { display: none !important; }
+  }
+</style>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body class="subject-page">
+<div class="site-nav-wrap">
+  <nav class="site-nav" aria-label="Asignaturas">
+    <a href="index.html">Exámenes</a>
+    <a href="abd.html">ABD</a>
+    <a href="isi.html">ISI</a>
+    <a href="smd.html" aria-current="page">SMD</a>
+  </nav>
+</div>
+<main class="shell">
+  <header>
+    <div>
+      <p class="eyebrow">Sistemas Multidimensionales</p>
+      <h1>Ejercicios y generador</h1>
+    </div>
+    <div class="header-meta">Temas 1–4 · diseño, ETL, consultas, optimización e integración</div>
+  </header>
+
+  <nav class="sources" aria-label="Ejercicios y exámenes originales">
+    <span class="section-label">Material original</span>
+    <div class="source-grid">
+      <a class="source-link" href="SMD/Ejercicios/ex01.pdf" target="_blank" rel="noopener">Ejercicios 1–5<small>ex01.pdf</small></a>
+      <a class="source-link" href="SMD/Ejercicios/ex02.pdf" target="_blank" rel="noopener">Examen 2020–21<small>ex02.pdf</small></a>
+      <a class="source-link" href="SMD/Ejercicios/ex03.pdf" target="_blank" rel="noopener">Ejercicios<small>ex03.pdf</small></a>
+      <a class="source-link" href="SMD/Ejercicios/ex04.pdf" target="_blank" rel="noopener">Examen vehículos<small>ex04.pdf</small></a>
+      <a class="source-link" href="SMD/Ejercicios/ex05.pdf" target="_blank" rel="noopener">Examen envíos<small>ex05.pdf</small></a>
+      <a class="source-link" href="SMD/Ejercicios/ex06.pdf" target="_blank" rel="noopener">Extraordinaria<small>ex06.pdf</small></a>
+      <a class="source-link" href="SMD/Ejercicios/ex07.pdf" target="_blank" rel="noopener">Ordinaria<small>ex07.pdf</small></a>
+      <a class="source-link" href="SMD/Ejercicios/ex08.pdf" target="_blank" rel="noopener">Examen 2024–25<small>ex08.pdf</small></a>
+    </div>
+  </nav>
+
+  <div class="toolbar">
+    <button class="button" id="newExam" type="button">Nuevo modelo de examen</button>
+    <span class="spacer"></span>
+    <button class="button secondary" id="toggleSolutions" type="button">Ver soluciones</button>
+    <button class="button secondary" id="printView" type="button">Imprimir</button>
+  </div>
+
+  <section class="dashboard" aria-label="Resumen de la selección">
+    <div>
+      <span class="dash-label">Modo</span>
+      <span class="dash-value" id="modeLabel">Modelo de examen</span>
+    </div>
+    <div>
+      <span class="dash-label">Ejercicios</span>
+      <span class="dash-value" id="questionCount">0</span>
+    </div>
+    <div>
+      <span class="dash-label">Apartados</span>
+      <span class="dash-value" id="partCount">0</span>
+    </div>
+    <div>
+      <span class="dash-label">Temas</span>
+      <span class="dash-value" id="topicCount">0</span>
+    </div>
+  </section>
+
+  <section class="context" id="examContext"></section>
+  <section id="exam" aria-live="polite"></section>
+
+  <footer>
+    Los modelos se generan a partir de los apuntes y de los patrones de evaluación observados en los ocho documentos facilitados.
+  </footer>
+</main>
+
+<script>
+const SOURCE_FILES = {
+  ex01: "SMD/Ejercicios/ex01.pdf",
+  ex02: "SMD/Ejercicios/ex02.pdf",
+  ex03: "SMD/Ejercicios/ex03.pdf",
+  ex04: "SMD/Ejercicios/ex04.pdf",
+  ex05: "SMD/Ejercicios/ex05.pdf",
+  ex06: "SMD/Ejercicios/ex06.pdf",
+  ex07: "SMD/Ejercicios/ex07.pdf",
+  ex08: "SMD/Ejercicios/ex08.pdf"
+};
+
+const SOURCE_NAMES = {
+  ex01: "Ejercicios 1–5",
+  ex02: "Examen 2020–21",
+  ex03: "Ejercicios",
+  ex04: "Examen de vehículos",
+  ex05: "Examen de envíos",
+  ex06: "Extraordinaria 2022–23",
+  ex07: "Ordinaria 2022–23",
+  ex08: "Examen 2024–25"
+};
+
+let serial = 0;
+let currentQuestions = [];
+let currentContext = null;
+let solutionsVisible = false;
+let modelNumber = 0;
+
+function part(prompt, solution) {
+  return { prompt, solution };
+}
+
+function original(id, source, topic, title, statement, parts) {
+  return { id, source, topic, title, statement, parts, kind: "Original" };
+}
+
+const ORIGINAL_QUESTIONS = [
+  original("O01", "ex01", "T1 · T2", "Carreras populares", "Se desea construir un sistema OLAP que integre los resultados de las carreras populares celebradas en las provincias andaluzas durante diez años. Para cada participación se dispone de la carrera, categoría del atleta, tiempo y velocidad media.", [
+    part("Diseña a nivel conceptual la dimensión Atleta y estima su número de registros.", "La información intercambiada solo permite representar la categoría del atleta; debe modelarse su jerarquía y justificar si existe identificación individual. La estimación debe partir de las categorías disponibles y de su evolución durante diez años."),
+    part("Indica cuáles serían las bases de los hechos y estima el número de registros.", "Una base razonable es Carrera × Atleta/Categoría según la granularidad elegida. Con unas 8 provincias, 15 carreras anuales, 500 participantes y 10 años, el máximo aproximado sería 600.000 participaciones, ajustado por ocupación real."),
+    part("Define las mediciones y su aditividad.", "Tiempo y velocidad media no deben sumarse al agregar participaciones; son no aditivas y requieren medias u otras funciones. Un contador derivado de participaciones sí sería aditivo."),
+    part("Indica los métodos de extracción más adecuados para actualizar hechos y dimensiones.", "Al recibirse hojas de cálculo por correo son apropiadas cargas periódicas diferidas, con validación, normalización de categorías, control de duplicados y registro de la fecha de recepción.")
+  ]),
+  original("O02", "ex01", "T1 · T2", "Matriculaciones universitarias", "La UGR publica datos por titulación, centro, curso, asignatura, departamento, créditos y alumnado matriculado, repetidor y no repetidor. Algunos atributos de una asignatura pueden variar a lo largo del tiempo.", [
+    part("Diseña conceptualmente las dimensiones y los hechos, comentando las alternativas posibles.", "Debe fijarse primero la granularidad. Una solución habitual usa hechos por curso académico, titulación y asignatura, dimensiones Tiempo, Titulación/Centro, Asignatura/Departamento y mediciones de matrículas, repetidores, no repetidores y créditos."),
+    part("Razona el comportamiento del diseño ante cambios de departamento, curso o créditos.", "Los cambios afectan al análisis histórico. Una SCD tipo 2 permite conservar cada versión; la clave natural identifica la asignatura y una llave generada identifica cada versión vigente."),
+    part("Estima el número de registros de hechos y dimensiones para diez años.", "La respuesta debe declarar cardinalidades y densidad. No es correcto multiplicar ciegamente todos los niveles si no todas las combinaciones existen; se estiman las ofertas reales de asignaturas por titulación y curso.")
+  ]),
+  original("O03", "ex01", "T1 · T2", "Encuestas de opinión del alumnado", "Se diseña un sistema OLAP para analizar cuestionarios docentes por profesor, alumno, asignatura, cuatrimestre y tipo de medición.", [
+    part("Realiza el diseño lógico de la dimensión Profesor y estima sus registros en diez años.", "Conviene usar una llave generada y conservar cambios relevantes mediante tipo 2. Partiendo de 2.000 profesores y 100 incorporaciones por curso, habría al menos 3.000 personas distintas; las 30 bajas anuales no se eliminan del histórico. A ello se añaden las versiones producidas por cambios."),
+    part("Realiza el diseño conceptual de la dimensión Alumno y estima sus registros en diez años.", "La dimensión debe separar identificadores, descriptores y posibles jerarquías. Con 60.000 alumnos iniciales y 10.000 incorporaciones por curso, la cifra mínima sería 160.000 personas distintas; quienes abandonan deben conservarse para analizar encuestas antiguas."),
+    part("Define las mediciones, su aditividad, las bases y una estimación de los hechos.", "Las respuestas individuales o puntuaciones no son sumables como significado; se agregan mediante recuento, media o distribución. Las bases dependen de si el hecho representa respuesta, cuestionario o resumen.")
+  ]),
+  original("O04", "ex01", "T1 · T3", "Ventas por catálogo", "Esquema con las dimensiones Cliente, Producto y Tiempo y una tabla de hechos Venta que contiene número de pedido, cantidad, precio e importe.", [
+    part("Explica las operaciones necesarias para obtener un resumen mensual por departamento.", "Desde el cubo base: roll-up de Producto hasta Departamento, roll-up de Tiempo hasta Mes, slice para el mes solicitado y agregación de Cantidad e Importe mediante SUM."),
+    part("Explica el papel del Número de Pedido.", "Es una dimensión degenerada: identifica y agrupa líneas de una misma operación, pero no necesita tabla propia al carecer de atributos descriptivos."),
+    part("Valora definir Importe como medición calculada mediante Precio × Cantidad.", "Es adecuado si la relación se mantiene y no hay redondeos, impuestos o descuentos no representados. Ahorra almacenamiento, aunque incrementa cálculo y exige preservar los datos base."),
+    part("Define el agregado más adecuado y estima sus registros.", "Debe materializar Mes × Departamento con las medidas requeridas, omitiendo Cliente si el informe no lo necesita. La estimación usa meses × departamentos con combinaciones efectivamente existentes.")
+  ]),
+  original("O05", "ex01", "T2", "Jugadores y cubo de goles", "Un sistema analiza goles por jugador, momento y tipo de gol. La dimensión Jugador contiene DNI, nombre, apellidos, alias, dorsal y equipo.", [
+    part("Justifica una solución para los cambios lentamente cambiantes de Jugador.", "DNI y nombre suelen permanecer; dorsal y equipo cambian y necesitan historia. Una SCD tipo 2 con llave generada, vigencia y clave natural permite asignar cada gol a la versión correcta."),
+    part("Estima los registros de hechos para cinco temporadas.", "La granularidad natural es un gol. Debe estimarse el promedio de goles por partido y multiplicarlo por 380 partidos y 5 temporadas; no procede multiplicar todos los jugadores, minutos y tipos porque el cubo es disperso."),
+    part("Define las bases y la aditividad.", "Las bases son Jugador, Momento y Tipo de gol, añadiendo Partido/Temporada si se necesita identificar el evento. Número de goles es aditivo por todas las dimensiones.")
+  ]),
+  original("O06", "ex02", "T1 · T2", "Cuestiones fundamentales", "Responde razonadamente a las cuestiones del examen de julio de 2021.", [
+    part("Explica en qué consiste una jerarquía no estricta y qué ventajas o problemas presenta.", "Un miembro inferior puede relacionarse con varios miembros superiores. Aumenta flexibilidad, pero un roll-up ingenuo puede contar varias veces el mismo hecho y romper la sumarización."),
+    part("Explica las ventajas del copo de nieve y las razones para seleccionar estrella.", "Copo de nieve reduce redundancia y facilita ciertas actualizaciones; estrella requiere menos joins, es más sencilla y suele ofrecer menor latencia. Las dimensiones ocupan mucho menos que los hechos, por lo que el ahorro suele compensar menos."),
+    part("Explica por qué se usan llaves generadas.", "Independizan el OLAP de las claves fuente, reducen el tamaño de las claves en hechos, integran fuentes distintas y permiten distinguir versiones SCD de una misma entidad.")
+  ]),
+  original("O07", "ex02", "T1 · T2", "Docencia e investigación en la UGR", "Se pide diseñar un sistema que analice docencia e investigación mediante departamentos, profesores, asignaturas, grupos, cuatrimestres, cursos, proyectos, entidades financiadoras, créditos, horas y publicaciones.", [
+    part("Diseña el sistema multidimensional a nivel conceptual.", "Es razonable separar procesos con granularidades distintas: docencia impartida e investigación. Pueden compartir Tiempo, Profesor y Departamento como dimensiones conformadas. Cada hecho debe tener bases y medidas coherentes con su proceso."),
+    part("Justifica si conviene un único hecho o varios.", "Créditos impartidos y horas docentes ocurren por asignatura/grupo/curso, mientras publicaciones y dedicación a proyectos tienen otras bases. Forzarlas en un único hecho produce nulos, duplicación y granularidad ambigua.")
+  ]),
+  original("O08", "ex02", "T1", "Análisis de llamadas", "Un cubo de telefonía contiene Cliente que llama, Cliente llamado, Cuándo y Tarifa, con duración e importe como medidas.", [
+    part("Obtén el importe total por tarifa durante 2020.", "Slice de Año=2020, roll-up de Tarifa al nivel requerido y SUM de Importe."),
+    part("Obtén la duración de llamadas realizadas desde Granada durante el primer trimestre de 2020.", "Slice/Dice sobre municipio emisor Granada, año 2020 y trimestre 1; SUM de Duración."),
+    part("Obtén el número de llamadas internacionales desde Andalucía durante el primer semestre de 2021.", "Filtrar origen Andalucía, tiempo solicitado y comparar país de origen/destino. Debe existir una medición contador o derivarse mediante COUNT; no se suma Duración."),
+    part("Obtén la duración de llamadas entre clientes de la misma empresa durante junio de 2021.", "Filtrar mes/año y la empresa de los extremos según el significado de «entre clientes»; sumar Duración.")
+  ]),
+  original("O09", "ex03", "T1", "Aditividad de mediciones", "Clasifica la aditividad de distintas mediciones y justifica cada respuesta.", [
+    part("Cantidad total de una moneda disponible en una sucursal en un día.", "Es aditiva por moneda y sucursal, pero semiaditiva respecto al tiempo: sumar saldos de varios días no representa un saldo válido."),
+    part("Cantidad de facturas en las que aparece un producto, por tienda y día.", "Es aditiva si cada hecho cuenta apariciones de facturas sin solapamiento entre celdas; puede sumarse por producto, tienda y día."),
+    part("Posición de un atleta al cruzar la meta de una carrera.", "Es no aditiva: sumar posiciones entre atletas, carreras o fechas carece de significado.")
+  ]),
+  original("O10", "ex03", "T2", "Dimensión Ordenador portátil", "Se dispone de tipo de tarjeta gráfica, memoria, procesador, dimensiones, peso y número de serie.", [
+    part("Desarrolla el diseño conceptual de la dimensión.", "Número de serie puede identificar el portátil. Los demás campos son descriptores; solo deben formar niveles si existe una relación parte-todo exclusiva y útil para el análisis."),
+    part("Indica la solución SCD apropiada para cada campo en caso de cambio.", "Hay que decidir qué historia interesa. Un error descriptivo puede corregirse con tipo 1; cambios de configuración relevantes para hechos históricos suelen requerir tipo 2; características inmutables pueden tratarse como tipo 0.")
+  ]),
+  original("O11", "ex03", "T1 · T3", "Informe de ventas y agregado", "Sobre un esquema de ventas se solicita Producto.Departamento='Ficción': Producto.Descripción, AVG(Precio), SUM(Importe).", [
+    part("Explica las operaciones multidimensionales necesarias.", "Slice por Departamento=Ficción, mantener o drill-down hasta Descripción y agregar Precio con AVG e Importe con SUM. Las dimensiones no mostradas se llevan a Todo."),
+    part("Define el agregado más adecuado.", "Un agregado por Producto/Descripción, con SUM de Importe y los componentes necesarios para obtener AVG de Precio, como suma y contador. Guardar solo la media dificulta combinar agregados."),
+    part("Estima sus registros con 40.000 clientes, 6.000 productos y cinco años.", "Si Cliente y Tiempo quedan en Todo, el máximo está ligado a los productos de Ficción, no al producto cartesiano completo. Debe estimarse qué fracción de los 6.000 productos pertenece al departamento.")
+  ]),
+  original("O12", "ex04", "T1 · T2", "Matriculaciones de vehículos", "La DGT publica una fila por vehículo matriculado. El sistema debe usar Dónde a nivel provincia, Cuándo a nivel mes y una dimensión Qué con los atributos permitidos.", [
+    part("Realiza el diseño conceptual de la dimensión Qué respetando las exclusiones del enunciado.", "Debe incluir marca, tipo de vehículo, propulsión, categoría eléctrica, plazas, potencia y CO₂, sin bastidor, modelo, titulares, municipio ni fecha. Las jerarquías solo se crean cuando las relaciones sean válidas."),
+    part("Realiza el diseño conceptual de los hechos.", "La granularidad es una matriculación o un resumen por Mes × Provincia × Qué. Las bases son Cuándo, Dónde y Qué; una medida contador de matriculaciones es aditiva."),
+    part("Estima el número de instancias.", "Con 130.000 matriculaciones mensuales y 90 meses entre diciembre de 2014 y mayo de 2022, a granularidad individual hay aproximadamente 11,7 millones."),
+    part("Explica cómo actualizarías la dimensión Qué.", "La fuente mensual permite captura diferida. Se detectan nuevas combinaciones y cambios; se decide tipo 0, 1 o 2 por atributo, usando llaves generadas cuando se conserva historia.")
+  ]),
+  original("O13", "ex05", "T2", "Índice bitmap de join", "Sobre un sistema de envíos se pide construir un índice de join mediante mapa de bits para la dimensión Ship to.", [
+    part("Define tres instancias completas de Ship to y diez hechos que las referencien.", "Las instancias deben respetar la jerarquía ciudad–estado y los descriptores. Los diez hechos deben contener claves foráneas consistentes, pudiendo repetir destinos."),
+    part("Construye el índice bitmap de join.", "Se crea una tira de diez bits por cada valor filtrable de Ship to. En cada posición se marca 1 si el hecho referencia una instancia con ese valor y 0 en otro caso."),
+    part("Muestra cómo combinar condiciones.", "Los filtros se combinan mediante AND, OR o NOT sobre las tiras. Por ejemplo, Ciudad=A AND Cliente=B se obtiene con AND entre ambos mapas.")
+  ]),
+  original("O14", "ex05", "T1 · T2", "Mejora de un diseño de envíos", "Se proporciona un esquema multidimensional de envíos con Product, Time, Ship to y las medidas quantity shipped, price y discount.", [
+    part("Mejora exclusivamente el diseño conceptual de los hechos.", "Hay que revisar granularidad, bases y medidas. Precio y descuento pueden no ser aditivos; importe o cantidad pueden ser derivados. También debe comprobarse si falta un identificador degenerado del envío."),
+    part("Realiza el diseño lógico resultante.", "La tabla de hechos debe usar llaves generadas hacia las dimensiones, almacenar medidas base necesarias y evitar atributos descriptivos propios de dimensiones.")
+  ]),
+  original("O15", "ex05", "T1", "Operaciones sobre informes de envíos", "Se parte siempre del informe month, type, city, SUM(qty shipped).", [
+    part("Obtén brand, date, city, SUM(qty shipped), para year en 2021 y 2022.", "Drill-down Month→Date, cambiar Type por Brand en Producto según la jerarquía disponible y dice de Año en {2021, 2022}; City se mantiene."),
+    part("Obtén season, SUM(qty shipped).", "Roll-up de Time desde Month hasta Season, y roll-up del resto de dimensiones hasta Todo; se suma Quantity shipped.")
+  ]),
+  original("O16", "ex05", "T2 · T3", "Tamaño del cubo y actualizaciones", "El sistema de envíos almacena cinco años, 200 productos y 3.000 destinos.", [
+    part("Estima las instancias del cubo base y de un agregado a nivel año.", "Debe fijarse el nivel temporal y una densidad. El máximo cartesiano solo es una cota; la estimación real depende de envíos existentes. El agregado anual reduce la cardinalidad temporal a cinco."),
+    part("Explica cómo obtener actualizaciones periódicas desde un SGBD de usuario final.", "Pueden usarse instantáneas con marca temporal, comparación de imágenes, campos de última modificación o logs si existen. En Access suele ser más realista la captura diferida."),
+    part("Explica cómo tratarías los cambios según el campo modificado.", "Se elige tipo 0 para inmutables, tipo 1 para correcciones sin interés histórico y tipo 2 para cambios cuyo contexto histórico debe conservarse.")
+  ]),
+  original("O17", "ex06", "T2", "Bitmap sobre Producto", "Un sistema de ventas contiene una dimensión Producto y se desea acelerar filtros combinados.", [
+    part("Representa seis instancias y define tres índices bitmap.", "Se seleccionan atributos de baja cardinalidad, por ejemplo Departamento, Sección y una categoría de precio. Cada valor tiene una tira de seis bits."),
+    part("Muestra el uso conjunto mediante una consulta.", "La condición compuesta se evalúa con operaciones lógicas entre mapas, por ejemplo Departamento=Ficción AND Sección=Juvenil AND NOT Precio=Alto.")
+  ]),
+  original("O18", "ex06", "T1", "Operaciones desde el cubo más agregado", "Se pide obtener un informe semanal de ventas desde el cubo de granularidad más gruesa posible.", [
+    part("Indica y explica las operaciones necesarias.", "Desde el cubo Todo se realizan drill-down hasta Semana en Tiempo y hasta los niveles mostrados en las demás dimensiones; se aplican slices del periodo y se agregan las medidas con sus funciones correctas.")
+  ]),
+  original("O19", "ex06", "T2", "SCD de Producto", "La dimensión Producto contiene código de barras, descripción, precio, sección y departamento.", [
+    part("Realiza su diseño conceptual.", "Código de barras actúa como clave natural; Descripción y Precio son descriptores. Sección y Departamento pueden formar una jerarquía si cada sección pertenece a un único departamento."),
+    part("Propón soluciones SCD considerando solo esos campos.", "Correcciones de descripción pueden ser tipo 1; cambios de precio, sección o departamento pueden requerir tipo 2 si se desea analizar ventas según el contexto histórico. Se usa llave generada y vigencia.")
+  ]),
+  original("O20", "ex06", "T1 · T2", "Ahorro de espacio en los hechos", "Se propone calcular Importe y eliminar Número de Pedido para reducir el tamaño de Venta.", [
+    part("Valora definir Importe como Precio × Cantidad.", "Es viable como medida derivada si la fórmula es completa y estable. Deben considerarse descuentos, impuestos, redondeos y el coste de cálculo."),
+    part("Valora eliminar Número de Pedido porque no aparece en expresiones de medidas.", "No es una razón suficiente. Como dimensión degenerada permite agrupar líneas, contar pedidos y analizar transacciones; eliminarla hace imposible esos análisis.")
+  ]),
+  original("O21", "ex06", "T3", "Agregado para un informe semanal", "Se dispone de 45.000 clientes, 1.500 productos y datos de cinco años.", [
+    part("Define y justifica el agregado adecuado.", "Debe coincidir con los niveles y medidas del informe frecuente, evitando dimensiones que se encuentren siempre en Todo. Para medias hay que almacenar suma y contador, no solo el promedio."),
+    part("Estima los hechos del cubo base y del agregado.", "La respuesta debe declarar granularidad y densidad. El agregado semanal tendrá como máximo semanas × combinaciones de niveles conservados, normalmente muy por debajo del cubo base.")
+  ]),
+  original("O22", "ex07", "T2", "Enfoque de diseño mixto", "Cuestión de desarrollo del examen ordinario.", [
+    part("Explica en qué consiste el enfoque mixto y sus ventajas e inconvenientes.", "Combina requerimientos de usuarios y análisis de datos disponibles. Evita diseños inútiles o imposibles, aunque exige más coordinación, iteración y negociación.")
+  ]),
+  original("O23", "ex07", "T4", "Arquitecturas de Inmon y Kimball", "Compara las dos propuestas de integración de almacenes de datos.", [
+    part("Explica sus similitudes y diferencias.", "Ambas buscan datos integrados y consistentes. Kimball integra data marts dimensionales mediante dimensiones conformadas; Inmon construye primero un almacén corporativo normalizado e histórico del que se derivan sistemas analíticos.")
+  ]),
+  original("O24", "ex07", "T3", "Agregados multidimensionales", "Cuestión de desarrollo del examen ordinario.", [
+    part("Explica qué son, qué función cumplen y qué ventajas e inconvenientes presentan.", "Son cubos precalculados a granularidad más gruesa. Reducen tiempo de respuesta y deben ser transparentes mediante el navegador de agregados, pero ocupan espacio, requieren selección y deben mantenerse con el cubo base.")
+  ]),
+  original("O25", "ex07", "T1 · T2", "Dimensión Vehículo de un taller", "El taller repara turismos, motocicletas y furgonetas con propulsión fósil, híbrida o eléctrica, identificados mediante matrícula y bastidor.", [
+    part("Diseña conceptualmente la dimensión Vehículo.", "Matrícula y bastidor son identificadores candidatos; conviene elegir una clave natural estable y usar llave generada en el lógico. Tipo de vehículo y propulsión son atributos descriptivos, no necesariamente niveles de una misma jerarquía."),
+    part("Indica supuestos relevantes.", "Debe aclararse si matrícula puede cambiar, si un bastidor siempre identifica un vehículo y si se desea conservar el histórico de propietario, categoría o propulsión.")
+  ]),
+  original("O26", "ex07", "T3", "SQL3 frente a SQL2", "Cuestión sobre soporte para consultas multidimensionales.", [
+    part("Explica qué aporta SQL3 respecto a SQL2.", "ROLLUP genera subtotales jerárquicos, CUBE todas las combinaciones y GROUPING distingue nulos reales de filas agregadas. En SQL2 se necesitaban varias consultas unidas con UNION.")
+  ]),
+  original("O27", "ex07", "T1", "Reparto de pastelería", "Dimensiones Pastel=250, Fecha=1.825 y Cliente=500 para analizar repartos durante cinco años.", [
+    part("Expresa el significado de los hechos.", "Debe fijarse si cada hecho representa una línea de pedido, un reparto o un resumen diario por cliente y pastel. Esa decisión determina las bases y medidas."),
+    part("Estima su número de instancias.", "El producto cartesiano es 228.125.000, pero suele ser una cota irreal. Debe estimarse pedidos diarios, líneas por pedido o una densidad justificada.")
+  ]),
+  original("O28", "ex08", "T1 · T2", "Actividades extracurriculares", "La UGR desea analizar participación en talleres, deportes, clubes y voluntariado por actividad, tiempo, organizador y lugar.", [
+    part("Propón al menos cuatro dimensiones y realiza su diseño conceptual.", "Son adecuadas Actividad, Tiempo, Organizador y Lugar, pudiendo añadir Estudiante. Cada dimensión necesita niveles, identificadores, descriptores y jerarquías válidas."),
+    part("Define hechos, bases y al menos dos medidas con su aditividad.", "Un hecho Participación puede tener bases Actividad, Tiempo, Lugar, Organizador y Estudiante. Recuento de participaciones y horas son aditivos; porcentaje de ocupación sería derivado y no aditivo."),
+    part("Representa el diseño ROLAP en estrella.", "Una tabla de hechos central con llaves externas generadas hacia una tabla por dimensión y columnas para las medidas base."),
+    part("Estima los hechos para cinco cursos.", "Debe estimarse número de actividades, sesiones, estudiantes y ocupación. No se acepta el producto cartesiano sin justificar la densidad.")
+  ]),
+  original("O29", "ex08", "T1", "Informes de participación", "Partiendo del cubo base de actividades extracurriculares, se plantean cuatro preguntas de negocio.", [
+    part("Indica las operaciones para conocer qué tipos de actividad tienen mayor participación.", "Roll-up de Actividad a Tipo, resto de dimensiones a Todo y SUM del contador de participaciones; ordenar es una operación de presentación."),
+    part("Indica las operaciones para estudiar la evolución temporal por actividad.", "Mantener Actividad al nivel elegido, roll-up o drill-down de Tiempo al periodo solicitado y agregar participaciones."),
+    part("Indica las operaciones para comparar áreas organizadoras y lugares.", "Roll-up de Organizador a Área/Departamento y de Lugar a Campus/Facultad según cada informe, llevando las dimensiones no utilizadas a Todo.")
+  ]),
+  original("O30", "ex08", "T3", "Mantenimiento de agregados", "Pregunta breve del examen 2024–25.", [
+    part("¿Es correcto afirmar que los agregados no necesitan mantenimiento al actualizar el cubo base? Justifica.", "No. Al cambiar el cubo base, los resultados materializados pueden quedar obsoletos. Deben refrescarse completa o incrementalmente y mantener coherencia con los datos detallados.")
+  ]),
+  original("O31", "ex08", "T3", "XMLA", "Pregunta breve del examen 2024–25.", [
+    part("¿Qué propósito tiene XMLA en una arquitectura OLAP?", "Es un protocolo/formato basado en XML para intercambiar solicitudes y resultados entre clientes y servidores OLAP. MDX expresa la consulta; XMLA la transporta.")
+  ]),
+  original("O32", "ex08", "T3", "ROLLUP y CUBE", "Pregunta breve del examen 2024–25.", [
+    part("¿Qué ventaja aportan GROUP BY ROLLUP y GROUP BY CUBE?", "Permiten obtener múltiples niveles de agregación en una sola sentencia: ROLLUP sigue una jerarquía ordenada y CUBE produce todas las combinaciones, evitando numerosas consultas con UNION.")
+  ])
+];
+
+const SCENARIOS = [
+  {
+    name: "Bibliotecas públicas",
+    process: "préstamos de ejemplares realizados por usuarios de una red de bibliotecas",
+    dimensions: ["Ejemplar (ISBN, título, autor, género y editorial)", "Usuario (tipo, municipio y provincia)", "Biblioteca (sede, municipio y provincia)", "Tiempo (día, mes, trimestre y año)"],
+    measures: ["número de préstamos", "días de préstamo", "importe de penalización"],
+    entities: { items: 18000, actors: 42000, places: 24, years: 5, events: 310000 },
+    report: "género, trimestre, provincia de la biblioteca, SUM(número de préstamos)"
+  },
+  {
+    name: "Clínicas veterinarias",
+    process: "servicios veterinarios prestados a animales en distintas clínicas",
+    dimensions: ["Animal (especie, raza y tamaño)", "Cliente (municipio y provincia)", "Clínica (centro, ciudad y zona)", "Tiempo (día, mes, trimestre y año)", "Servicio (tipo y especialidad)"],
+    measures: ["número de servicios", "duración", "importe facturado"],
+    entities: { items: 85, actors: 16000, places: 12, years: 4, events: 145000 },
+    report: "especialidad, mes, zona, AVG(duración), SUM(importe facturado)"
+  },
+  {
+    name: "Plataforma educativa",
+    process: "intentos de resolución de actividades realizados por estudiantes",
+    dimensions: ["Actividad (tipo, unidad, asignatura y área)", "Estudiante (titulación y curso)", "Tiempo (día, semana, mes y curso académico)", "Dispositivo (tipo, sistema y navegador)"],
+    measures: ["número de intentos", "tiempo empleado", "puntuación obtenida"],
+    entities: { items: 2400, actors: 9000, places: 8, years: 3, events: 2100000 },
+    report: "asignatura, semana, tipo de dispositivo, AVG(puntuación), SUM(número de intentos)"
+  },
+  {
+    name: "Reparto de paquetería",
+    process: "entregas de paquetes gestionadas por una empresa de mensajería",
+    dimensions: ["Envío (tipo de servicio, prioridad y franja)", "Cliente (sector, municipio y provincia)", "Destino (ciudad, provincia y país)", "Tiempo (día, mes, trimestre y año)", "Repartidor (centro y zona)"],
+    measures: ["número de paquetes", "peso", "importe", "minutos de retraso"],
+    entities: { items: 16, actors: 28000, places: 110, years: 5, events: 4800000 },
+    report: "tipo de servicio, mes, país, SUM(peso), AVG(minutos de retraso)"
+  },
+  {
+    name: "Consumo energético",
+    process: "lecturas horarias de consumo producidas por contadores inteligentes",
+    dimensions: ["Contador (tipo, tarifa y potencia contratada)", "Cliente (segmento y municipio)", "Ubicación (municipio, provincia y comunidad)", "Tiempo (hora, día, mes y año)"],
+    measures: ["kWh consumidos", "potencia máxima", "coste"],
+    entities: { items: 7, actors: 32000, places: 75, years: 2, events: 560640000 },
+    report: "tarifa, mes, provincia, SUM(kWh consumidos), MAX(potencia máxima)"
+  },
+  {
+    name: "Museos y exposiciones",
+    process: "visitas y entradas vendidas en una red de museos",
+    dimensions: ["Exposición (temática, tipo y museo)", "Visitante (tipo y país de residencia)", "Canal (taquilla, web o agencia)", "Tiempo (día, mes, temporada y año)"],
+    measures: ["número de entradas", "importe", "duración de la visita"],
+    entities: { items: 140, actors: 12, places: 9, years: 6, events: 760000 },
+    report: "temática, temporada, canal, SUM(número de entradas), AVG(duración de la visita)"
+  }
+];
+
+const THEORY_TEMPLATES = [
+  {
+    topic: "T1",
+    title: "Jerarquías y sumarización",
+    prompt: "Explica qué condiciones debe cumplir una jerarquía para que un roll-up conserve el significado de los datos y analiza qué ocurriría con una relación no estricta.",
+    solution: "La relación entre niveles debe ser parte-todo, exclusiva y cubrir correctamente las instancias. Si un miembro inferior pertenece a varios superiores, puede producirse doble conteo; hay que ponderar, cambiar la granularidad o modelar explícitamente la relación muchos-a-muchos."
+  },
+  {
+    topic: "T1",
+    title: "Aditividad aplicada",
+    prompt: "Compara la aditividad de un saldo diario, un contador de eventos, una media y una posición en una clasificación.",
+    solution: "El contador es aditivo; el saldo suele ser semiaditivo respecto al tiempo; la media es derivada y debe reconstruirse con suma y contador; la posición es no aditiva."
+  },
+  {
+    topic: "T2",
+    title: "Elección de SCD",
+    prompt: "Explica cómo decidir entre SCD tipo 0, 1, 2 y 3 para los atributos de una dimensión y qué papel desempeña la llave generada.",
+    solution: "Tipo 0 preserva el original, tipo 1 corrige sin historia, tipo 2 crea versiones completas y tipo 3 conserva un valor anterior limitado. La llave generada identifica cada versión mientras la clave natural reconoce la entidad."
+  },
+  {
+    topic: "T2",
+    title: "Captura periódica",
+    prompt: "Una fuente solo permite consultar su estado actual cada noche. Explica cómo detectarías altas, cambios y bajas para actualizar el OLAP y qué limitaciones tendría el método.",
+    solution: "Se toman instantáneas con marca temporal y se comparan por clave natural. Permite detectar diferencias entre imágenes, pero puede perder cambios intermedios y exige distinguir una baja real de un dato temporalmente ausente."
+  },
+  {
+    topic: "T2",
+    title: "Índices bitmap",
+    prompt: "Justifica cuándo es apropiado un índice bitmap y cuándo un índice bitmap de join en un esquema estrella.",
+    solution: "Bitmap funciona bien con baja cardinalidad y consultas analíticas de muchas filas. El bitmap de join representa en los hechos valores de dimensiones y evita joins repetidos; ambos son menos adecuados con actualizaciones concurrentes frecuentes."
+  },
+  {
+    topic: "T3",
+    title: "Selección de agregados",
+    prompt: "Explica cómo elegir un agregado para un informe frecuente y por qué una media no debería almacenarse como único valor agregable.",
+    solution: "Se materializan los niveles usados por el informe y las medidas mínimas necesarias. Para combinar medias se necesitan suma y contador; la media de medias puede ser incorrecta si los grupos tienen tamaños distintos."
+  },
+  {
+    topic: "T3",
+    title: "ROLLUP, CUBE y GROUPING",
+    prompt: "Compara ROLLUP y CUBE y explica por qué GROUPING es necesario cuando existen valores nulos reales.",
+    solution: "ROLLUP elimina atributos de derecha a izquierda y sigue una jerarquía; CUBE genera todas las combinaciones. GROUPING distingue un NULL de los datos de otro que representa un subtotal o total."
+  },
+  {
+    topic: "T3",
+    title: "MDX, XMLA y DAX",
+    prompt: "Relaciona MDX, XMLA y DAX con el tipo de modelo o función que corresponde a cada uno.",
+    solution: "MDX expresa consultas sobre cubos multidimensionales; XMLA transporta solicitudes y resultados entre cliente y servidor; DAX trabaja con modelos tabulares."
+  },
+  {
+    topic: "T4",
+    title: "Kimball frente a Inmon",
+    prompt: "Compara la forma en que Kimball e Inmon integran varios sistemas analíticos y explica el riesgo que ambos intentan evitar.",
+    solution: "Kimball coordina modelos dimensionales mediante dimensiones conformadas; Inmon usa un almacén corporativo normalizado e histórico. Ambos evitan data marts aislados, duplicidad de ETL e interpretaciones contradictorias."
+  },
+  {
+    topic: "T4",
+    title: "Impacto y trazabilidad",
+    prompt: "Diferencia análisis de impacto y trazabilidad de datos mediante un cambio en una columna de un sistema OLTP.",
+    solution: "El impacto avanza desde la columna hacia ETL, tablas, cubos e informes afectados. La trazabilidad parte de un dato final y retrocede hasta sus fuentes y transformaciones."
+  },
+  {
+    topic: "T4",
+    title: "Priorización de proyectos",
+    prompt: "Explica cómo priorizar proyectos multidimensionales considerando impacto y factibilidad, y por qué empezar por el proyecto de mayor tamaño puede ser contraproducente.",
+    solution: "Se buscan iniciativas con alto impacto y viabilidad suficiente para entregar valor pronto. Un proyecto enorme aumenta plazo, riesgo y dificultad de adopción; conviene dividirlo e integrar sus dimensiones con una arquitectura común."
+  }
+];
+
+function shuffle(items) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function sample(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function uniqueId(prefix) {
+  serial += 1;
+  return `${prefix}-${serial}`;
+}
+
+function generated(topic, title, statement, parts) {
+  return { id: uniqueId("N"), topic, title, statement, parts, kind: "Nueva" };
+}
+
+function makeContext(scenario) {
+  return {
+    title: scenario.name,
+    body: `Se desea construir un sistema multidimensional para analizar ${scenario.process}. El diseño debe permitir análisis históricos y consultas desde distintos niveles de detalle.`,
+    data: [
+      ...scenario.dimensions,
+      `Mediciones candidatas: ${scenario.measures.join(", ")}`,
+      `Volumen observado: ${scenario.entities.events.toLocaleString("es-ES")} eventos en ${scenario.entities.years} años`
+    ]
+  };
+}
+
+function designQuestion(scenario) {
+  return generated("T1 · T2", "Diseño conceptual", `<p>Trabajando con el caso <strong>${scenario.name}</strong>, fija una granularidad adecuada antes de desarrollar el modelo.</p>`, [
+    part("Propón las dimensiones, sus niveles, descriptores y jerarquías. Justifica cualquier atributo que no conviertas en nivel.", `Deben aparecer las dimensiones indicadas por el contexto: ${scenario.dimensions.join("; ")}. Solo son niveles los atributos que forman relaciones parte-todo útiles y exclusivas; los demás quedan como descriptores.`),
+    part("Indica qué dimensiones podrían compartirse con otros sistemas y cómo las conformarías.", "Tiempo, geografía, cliente u otras dimensiones comunes deben compartir identificadores, significado, niveles y reglas de transformación. La conformidad permite cruzar procesos sin resultados contradictorios.")
+  ]);
+}
+
+function factsQuestion(scenario) {
+  return generated("T1", "Hechos y mediciones", `<p>Continúa el diseño de <strong>${scenario.name}</strong> usando como proceso ${scenario.process}.</p>`, [
+    part("Da un nombre a los hechos, define sus bases y explica qué representa exactamente una instancia.", `La respuesta debe corresponder a la granularidad elegida. Las bases serán las dimensiones que identifican un evento o celda; una instancia no puede mezclar eventos con distinto nivel de detalle.`),
+    part(`Selecciona al menos dos mediciones entre ${scenario.measures.join(", ")} y analiza su aditividad.`, "Los contadores e importes suelen ser aditivos; duraciones pueden sumarse si representan intervalos no solapados; medias, porcentajes, potencias máximas y posiciones requieren funciones específicas o medidas base derivadas.")
+  ]);
+}
+
+function logicalQuestion(scenario) {
+  return generated("T2", "Diseño ROLAP en estrella", `<p>Transforma el diseño conceptual de <strong>${scenario.name}</strong> en un esquema relacional en estrella.</p>`, [
+    part("Representa las tablas, claves primarias, claves externas y mediciones.", "Debe existir una tabla por dimensión con llave generada y una tabla de hechos central con dichas llaves como foráneas, más las medidas base. Las claves naturales se conservan en las dimensiones para integración y detección de cambios."),
+    part("Indica si aparece alguna dimensión degenerada, de múltiples papeles o cajón de trastos.", "La respuesta depende del caso y debe justificarse. Un identificador de operación sin descriptores puede ser degenerado; una misma dimensión conectada con roles distintos es de múltiples papeles; varios flags pequeños pueden agruparse en un cajón de trastos.")
+  ]);
+}
+
+function estimateQuestion(scenario) {
+  const density = randomInt(12, 68);
+  return generated("T1 · T3", "Estimación del volumen", `<p>Para <strong>${scenario.name}</strong> se conocen ${scenario.entities.items.toLocaleString("es-ES")} instancias del elemento analizado, ${scenario.entities.actors.toLocaleString("es-ES")} actores, ${scenario.entities.places} ubicaciones y ${scenario.entities.years} años. Se han registrado ${scenario.entities.events.toLocaleString("es-ES")} eventos.</p>`, [
+    part("Estima los hechos del cubo base y explica por qué no debe usarse sin más el producto cartesiano de todas las dimensiones.", `Si la granularidad es un evento, la mejor estimación inicial son ${scenario.entities.events.toLocaleString("es-ES")} hechos. El producto cartesiano solo sería una cota y presupone una densidad irreal; muchas combinaciones nunca ocurren.`),
+    part(`Supón que un agregado conserva aproximadamente el ${density}% de las combinaciones observadas tras subir Tiempo a Año y las demás dimensiones a los niveles del informe. Estima su tamaño y explicita las limitaciones.`, `Una aproximación simple sería ${Math.round(scenario.entities.events * density / 100).toLocaleString("es-ES")} filas antes de considerar la reducción adicional por agrupación. La cifra real depende de cuántos eventos colapsen en la misma combinación de niveles.`)
+  ]);
+}
+
+function operationsQuestion(scenario) {
+  return generated("T1 · T3", "Informe multidimensional", `<p>Partiendo del cubo base se desea obtener el informe:</p><span class="scenario">${scenario.report}</span>`, [
+    part("Enumera, en orden razonado, las operaciones multidimensionales necesarias.", "Debe aplicarse roll-up o drill-down hasta cada nivel mostrado, slice/dice para los filtros y roll-up a Todo para dimensiones ausentes. Cada medida debe usar su función correcta: SUM, AVG reconstruida, MAX o COUNT."),
+    part("Define el agregado más adecuado para este informe y explica qué medidas base materializarías.", "El agregado conserva exactamente los niveles frecuentes del informe. Para SUM se guarda la suma; para AVG se guardan suma y contador; para máximos se guarda MAX si el agregado no necesita recombinarse con datos de menor nivel.")
+  ]);
+}
+
+function changeQuestion(scenario) {
+  const changingDimension = sample(scenario.dimensions).split(" (")[0];
+  return generated("T2", `Cambios en ${changingDimension}`, `<p>Durante las actualizaciones periódicas de <strong>${scenario.name}</strong> se detectan altas, correcciones y cambios históricos en la dimensión ${changingDimension}.</p>`, [
+    part("Propón una estrategia SCD por clases de atributos y explica cuándo usarías tipos 0, 1 y 2.", "Tipo 0 para valores que no deben cambiar, tipo 1 para errores sin interés histórico y tipo 2 para cambios cuyo contexto debe mantenerse con los hechos antiguos."),
+    part("Explica cómo detectarías los cambios y qué claves utilizarías.", "Se compara la nueva imagen con la dimensión por clave natural. La llave generada identifica versiones; la carga cierra la vigencia anterior, inserta la nueva y asigna a cada hecho la versión válida en su fecha.")
+  ]);
+}
+
+function theoryQuestion(template = sample(THEORY_TEMPLATES)) {
+  return generated(template.topic, template.title, "<p>Responde de forma razonada. No se valorará una enumeración sin explicar las consecuencias en el sistema.</p>", [
+    part(template.prompt, template.solution)
+  ]);
+}
+
+function makeExam() {
+  const scenario = sample(SCENARIOS);
+  const theory = [
+    sample(THEORY_TEMPLATES.filter(item => item.topic === "T3")),
+    sample(THEORY_TEMPLATES.filter(item => item.topic === "T4"))
+  ];
+  currentContext = makeContext(scenario);
+  currentQuestions = [
+    designQuestion(scenario),
+    factsQuestion(scenario),
+    logicalQuestion(scenario),
+    estimateQuestion(scenario),
+    operationsQuestion(scenario),
+    changeQuestion(scenario),
+    ...theory.map(theoryQuestion)
+  ];
+  modelNumber += 1;
+  solutionsVisible = false;
+  render();
+}
+
+function renderPart(item) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "part";
+  wrapper.innerHTML = `
+    <div>
+      <p class="part-prompt">${item.prompt}</p>
+      <div class="solution${solutionsVisible ? " visible" : ""}"><strong>Solución orientativa.</strong> ${item.solution}</div>
+    </div>
+  `;
+  return wrapper;
+}
+
+function renderQuestion(question, index) {
+  const article = document.createElement("article");
+  article.className = "question";
+  const source = question.source
+    ? `<a class="source-button" href="${SOURCE_FILES[question.source]}" target="_blank" rel="noopener">Abrir ${question.source}.pdf</a>`
+    : "";
+  article.innerHTML = `
+    <div class="question-head">
+      <div class="question-number">${index + 1}</div>
+      <div>
+        <h2>${question.title}</h2>
+        <div class="tags">
+          ${question.topic.split(" · ").map(topic => `<span class="tag topic">${topic}</span>`).join("")}
+          <span class="tag${question.kind === "Nueva" ? " new" : ""}">${question.kind}</span>
+          ${question.source ? `<span class="tag">${SOURCE_NAMES[question.source]}</span>` : ""}
+          <span class="tag">${question.parts.length} apartados</span>
+        </div>
+      </div>
+      ${source}
+    </div>
+    <div class="statement">${question.statement}</div>
+    <div class="parts"></div>
+  `;
+  const parts = article.querySelector(".parts");
+  question.parts.forEach(item => parts.appendChild(renderPart(item)));
+  return article;
+}
+
+function renderContext() {
+  const container = document.getElementById("examContext");
+  if (!currentContext) {
+    container.className = "context";
+    container.innerHTML = "";
+    return;
+  }
+  container.className = "context visible";
+  container.innerHTML = `
+    <span class="section-label">Contexto común del examen</span>
+    <h2>${currentContext.title}</h2>
+    <p>${currentContext.body}</p>
+    <div class="context-data">${currentContext.data.map(item => `<span>${item}</span>`).join("")}</div>
+  `;
+}
+
+function updateSummary() {
+  const topics = new Set(currentQuestions.flatMap(question => question.topic.split(" · ")));
+  document.getElementById("modeLabel").textContent = `Examen generado · Modelo ${modelNumber}`;
+  document.getElementById("questionCount").textContent = currentQuestions.length;
+  document.getElementById("partCount").textContent = currentQuestions.reduce((sum, question) => sum + question.parts.length, 0);
+  document.getElementById("topicCount").textContent = topics.size;
+  document.getElementById("toggleSolutions").textContent = solutionsVisible ? "Ocultar soluciones" : "Ver soluciones";
+  document.getElementById("newExam").classList.add("active");
+}
+
+function render(scrollToTop = true) {
+  renderContext();
+  const container = document.getElementById("exam");
+  container.innerHTML = "";
+  if (!currentQuestions.length) {
+    container.innerHTML = '<div class="empty">No hay preguntas en esta selección.</div>';
+  } else {
+    currentQuestions.forEach((question, index) => container.appendChild(renderQuestion(question, index)));
+  }
+  updateSummary();
+  if (scrollToTop) window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+document.getElementById("newExam").addEventListener("click", makeExam);
+document.getElementById("toggleSolutions").addEventListener("click", () => {
+  solutionsVisible = !solutionsVisible;
+  render(false);
+});
+document.getElementById("printView").addEventListener("click", () => window.print());
+
+makeExam();
+</script>
+</body>
+</html>

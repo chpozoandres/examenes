@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Generadores y bancos de preguntas para ABD, ISI y SMD.">
+<title>Generadores de exámenes</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Newsreader:ital,opsz@0,6..72;1,6..72&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; min-height: 100vh; }
+  .portal {
+    width: min(960px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 48px 0 80px;
+  }
+  .portal-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 310px;
+    gap: 34px;
+    align-items: end;
+    padding-bottom: 28px;
+    border-bottom: 2px solid var(--site-ink);
+  }
+  .kicker {
+    margin: 0 0 13px;
+    color: var(--site-accent);
+    font: 600 11px/1.3 "IBM Plex Mono", monospace;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+  }
+  h1 {
+    max-width: 660px;
+    margin: 0;
+    font: 900 clamp(38px, 7vw, 66px)/.98 "Fraunces", Georgia, serif;
+    letter-spacing: 0;
+  }
+  .intro {
+    margin: 0;
+    color: var(--site-muted);
+    font-size: 17px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+  .catalogue {
+    margin-top: 34px;
+    border-top: 1px solid var(--site-line);
+  }
+  .subject {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+    gap: 20px;
+    align-items: center;
+    min-height: 144px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--site-line);
+  }
+  .subject-code {
+    color: var(--site-accent);
+    font: 600 14px/1 "IBM Plex Mono", monospace;
+    letter-spacing: .08em;
+  }
+  .subject h2 {
+    margin: 0 0 6px;
+    font: 600 clamp(23px, 4vw, 31px)/1.1 "Fraunces", Georgia, serif;
+    letter-spacing: 0;
+  }
+  .subject p {
+    max-width: 620px;
+    margin: 0;
+    color: var(--site-muted);
+    font-size: 16px;
+  }
+  .subject-meta {
+    display: flex;
+    gap: 7px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .subject-meta span {
+    padding: 3px 7px;
+    border: 1px solid var(--site-line);
+    border-radius: 2px;
+    color: var(--site-muted);
+    background: var(--site-paper-2);
+    font: 500 10px/1.4 "IBM Plex Mono", monospace;
+    text-transform: uppercase;
+  }
+  .open-subject {
+    display: inline-flex;
+    min-height: 39px;
+    align-items: center;
+    padding: 8px 14px;
+    border: 1px solid var(--site-ink);
+    border-radius: 2px;
+    color: var(--site-paper);
+    background: var(--site-ink);
+    font: 600 11px/1.2 "IBM Plex Mono", monospace;
+    letter-spacing: .04em;
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .open-subject:hover {
+    border-color: var(--site-accent);
+    background: var(--site-accent);
+  }
+  footer {
+    margin-top: 30px;
+    color: var(--site-muted);
+    font: 500 11px/1.6 "IBM Plex Mono", monospace;
+  }
+  @media (max-width: 720px) {
+    .portal { width: min(100% - 26px, 960px); padding-top: 34px; }
+    .portal-header { grid-template-columns: 1fr; gap: 16px; }
+    .subject { grid-template-columns: 48px minmax(0, 1fr); gap: 12px; }
+    .open-subject { grid-column: 2; justify-self: start; }
+  }
+</style>
+</head>
+<body class="portal-page">
+<div class="site-nav-wrap">
+  <nav class="site-nav" aria-label="Asignaturas">
+    <a href="./" aria-current="page">Exámenes</a>
+    <a href="abd.html">ABD</a>
+    <a href="isi.html">ISI</a>
+    <a href="smd.html">SMD</a>
+  </nav>
+</div>
+
+<main class="portal">
+  <header class="portal-header">
+    <div>
+      <p class="kicker">Grado en Ingeniería Informática · UGR</p>
+      <h1>Generadores de exámenes</h1>
+    </div>
+    <p class="intro">Accede al material y a las herramientas de práctica de cada asignatura.</p>
+  </header>
+
+  <section class="catalogue" aria-label="Asignaturas disponibles">
+    <article class="subject">
+      <div class="subject-code">ABD</div>
+      <div>
+        <h2>Administración de Bases de Datos</h2>
+        <p>Exámenes combinados de problemas de concurrencia, recuperación, serialización y teoría.</p>
+        <div class="subject-meta"><span>3–5 ejercicios</span><span>Temas 4–6</span><span>Soluciones</span></div>
+      </div>
+      <a class="open-subject" href="abd.html">Abrir ABD</a>
+    </article>
+
+    <article class="subject">
+      <div class="subject-code">ISI</div>
+      <div>
+        <h2>Ingeniería de Sistemas de Información</h2>
+        <p>Banco de preguntas por temas y generación de simulacros tipo test de 40 preguntas.</p>
+        <div class="subject-meta"><span>Banco propio</span><span>Test originales</span><span>40 preguntas</span></div>
+      </div>
+      <a class="open-subject" href="isi.html">Abrir ISI</a>
+    </article>
+
+    <article class="subject">
+      <div class="subject-code">SMD</div>
+      <div>
+        <h2>Sistemas Multidimensionales</h2>
+        <p>Modelos completos de diseño, ETL, estimación, consultas, optimización e integración OLAP.</p>
+        <div class="subject-meta"><span>Temas 1–4</span><span>Casos completos</span><span>Material original</span></div>
+      </div>
+      <a class="open-subject" href="smd.html">Abrir SMD</a>
+    </article>
+  </section>
+
+  <footer>
+    Sitio estático preparado para GitHub Pages. Todo el contenido usa rutas relativas al repositorio.
+  </footer>
+</main>
+</body>
+</html>
