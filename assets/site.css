@@ -1,0 +1,198 @@
+:root {
+  --site-ink: #1c1a17;
+  --site-paper: #f4efe6;
+  --site-paper-2: #eae3d5;
+  --site-line: #cdc3b0;
+  --site-accent: #9a2f1f;
+  --site-accent-2: #c0532b;
+  --site-muted: #73695a;
+  --site-good: #2f6b43;
+}
+
+body.subject-page,
+body.portal-page {
+  color: var(--site-ink);
+  background: var(--site-paper);
+  font-family: "Newsreader", Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.site-nav-wrap {
+  width: 100%;
+  border-bottom: 1px solid #302d28;
+  color: var(--site-paper);
+  background: var(--site-ink);
+}
+
+.site-nav {
+  display: flex;
+  width: min(960px, calc(100% - 32px));
+  min-height: 48px;
+  margin: 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.site-nav a {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  color: #d9d1c3;
+  font: 600 11px/1.2 "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  letter-spacing: .04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.site-nav a:hover {
+  border-color: #6d665c;
+  color: #fffaf0;
+}
+
+.site-nav a:first-child {
+  margin-right: auto;
+  color: #fffaf0;
+  font-weight: 600;
+  letter-spacing: .12em;
+}
+
+.site-nav a[aria-current="page"] {
+  border-color: var(--site-accent-2);
+  color: #fff;
+  background: var(--site-accent);
+}
+
+body.subject-page button,
+body.subject-page .button,
+body.subject-page .btn,
+body.subject-page .regen,
+body.subject-page .source-button {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  letter-spacing: .02em;
+}
+
+body.subject-page h1,
+body.subject-page h2,
+body.subject-page .dash-value,
+body.subject-page .result-score {
+  font-family: "Fraunces", Georgia, serif;
+  letter-spacing: 0;
+}
+
+body.subject-page .eyebrow,
+body.subject-page .kicker,
+body.subject-page .section-label,
+body.subject-page .dash-label,
+body.subject-page .tag,
+body.subject-page .question-number,
+body.subject-page .part::before,
+body.subject-page .header-meta {
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+
+body.subject-page .shell {
+  width: min(960px, calc(100% - 32px));
+}
+
+body.subject-page .toolbar {
+  background: rgba(244, 239, 230, .96);
+}
+
+body.subject-page .question,
+body.subject-page .dashboard,
+body.subject-page .context,
+body.subject-page .source-link {
+  border-color: var(--site-line);
+  border-radius: 3px;
+  background: #fffdf8;
+  box-shadow: none;
+}
+
+body.subject-page .button,
+body.subject-page .btn {
+  border-radius: 2px;
+}
+
+body.subject-page .button:not(.secondary),
+body.subject-page .btn:not(.ghost) {
+  border-color: var(--site-ink);
+  background: var(--site-ink);
+}
+
+body.subject-page .button:not(.secondary):hover,
+body.subject-page .btn:not(.ghost):hover {
+  border-color: var(--site-accent);
+  background: var(--site-accent);
+}
+
+body.subject-page .button.active {
+  border-color: var(--site-accent);
+  background: var(--site-accent);
+}
+
+body.subject-page .eyebrow,
+body.subject-page .kicker,
+body.subject-page .question-number,
+body.subject-page .part::before {
+  color: var(--site-accent);
+}
+
+body.subject-page .tag.topic,
+body.subject-page .tag.problem {
+  border-color: #bda58e;
+  color: #765438;
+  background: #f2e8d8;
+}
+
+body.subject-page .scenario {
+  border-left-color: var(--site-accent);
+  color: #4b342c;
+  background: #f2e5da;
+}
+
+body.subject-page .solution {
+  border-left-color: var(--site-good);
+  background: #e3efe4;
+}
+
+body.subject-page .source-link:hover,
+body.subject-page .source-button:hover {
+  border-color: var(--site-accent);
+  color: var(--site-accent);
+}
+
+@media (max-width: 620px) {
+  .site-nav {
+    width: min(100% - 20px, 960px);
+    min-height: 0;
+    padding: 8px 0;
+    flex-wrap: wrap;
+  }
+
+  .site-nav a {
+    min-height: 30px;
+    flex: 1 1 auto;
+    justify-content: center;
+    padding-inline: 7px;
+    font-size: 10px;
+  }
+
+  .site-nav a:first-child {
+    flex-basis: 100%;
+    margin-right: 0;
+  }
+
+  body.subject-page .shell {
+    width: min(100% - 22px, 960px);
+  }
+}
+
+@media print {
+  .site-nav-wrap {
+    display: none !important;
+  }
+}
