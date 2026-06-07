@@ -137,6 +137,26 @@
   .button.secondary { color: var(--ink); background: transparent; }
   .button.secondary:hover { color: white; background: var(--ink); }
   .button.active { border-color: var(--teal); color: white; background: var(--teal); }
+  .preset-panel {
+    margin: 0 0 24px;
+    padding: 15px 16px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .preset-list { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+  .preset-button {
+    min-height: 34px;
+    padding: 6px 4px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    color: var(--ink);
+    background: var(--paper);
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 750;
+  }
+  .preset-button:hover { border-color: var(--accent); color: var(--accent); }
+  .preset-button.active { border-color: var(--accent); color: white; background: var(--accent); }
 
   .dashboard {
     display: grid;
@@ -299,6 +319,7 @@
     }
     .toolbar .button { width: 100%; padding-left: 7px; padding-right: 7px; font-size: 11.5px; }
     .spacer { display: none; }
+    .preset-list { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .dashboard { grid-template-columns: 1fr 1fr; }
     .dashboard > div { border-bottom: 1px solid var(--line); }
     .dashboard > div:nth-child(2) { border-right: 0; }
@@ -364,6 +385,11 @@
     <button class="button secondary" id="printView" type="button">Imprimir</button>
   </div>
 
+  <section class="preset-panel" aria-label="Exámenes preparados">
+    <span class="section-label">Exámenes preparados</span>
+    <div class="preset-list" id="presetList"></div>
+  </section>
+
   <section class="dashboard" aria-label="Resumen de la selección">
     <div>
       <span class="dash-label">Modo</span>
@@ -418,7 +444,10 @@ let serial = 0;
 let currentQuestions = [];
 let currentContext = null;
 let solutionsVisible = false;
-let modelNumber = 0;
+let freeExamNumber = 0;
+let currentExamLabel = "ex01";
+let activePreset = 1;
+let randomSource = Math.random;
 
 function part(prompt, solution) {
   return { prompt, solution };
@@ -693,18 +722,29 @@ const THEORY_TEMPLATES = [
 function shuffle(items) {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(randomSource() * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
 }
 
 function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(randomSource() * (max - min + 1)) + min;
 }
 
 function sample(items) {
-  return items[Math.floor(Math.random() * items.length)];
+  return items[Math.floor(randomSource() * items.length)];
+}
+
+function seededRandom(seed) {
+  let state = seed >>> 0;
+  return function next() {
+    state += 0x6D2B79F5;
+    let value = state;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 function uniqueId(prefix) {
@@ -778,7 +818,7 @@ function theoryQuestion(template = sample(THEORY_TEMPLATES)) {
   ]);
 }
 
-function makeExam() {
+function buildExam() {
   const scenario = sample(SCENARIOS);
   const theory = [
     sample(THEORY_TEMPLATES.filter(item => item.topic === "T3")),
@@ -794,9 +834,29 @@ function makeExam() {
     changeQuestion(scenario),
     ...theory.map(theoryQuestion)
   ];
-  modelNumber += 1;
+}
+
+function showExam(label, seed = null, preset = null) {
+  const previousRandom = randomSource;
+  if (seed !== null) randomSource = seededRandom(seed);
+  try {
+    buildExam();
+  } finally {
+    randomSource = previousRandom;
+  }
+  currentExamLabel = label;
+  activePreset = preset;
   solutionsVisible = false;
   render();
+}
+
+function makeExam() {
+  freeExamNumber += 1;
+  showExam(`Nuevo ${String(freeExamNumber).padStart(2, "0")}`);
+}
+
+function loadPresetExam(number) {
+  showExam(`ex${String(number).padStart(2, "0")}`, 9100 + number * 104729, number);
 }
 
 function renderPart(item) {
@@ -857,12 +917,15 @@ function renderContext() {
 
 function updateSummary() {
   const topics = new Set(currentQuestions.flatMap(question => question.topic.split(" · ")));
-  document.getElementById("modeLabel").textContent = `Examen generado · Modelo ${modelNumber}`;
+  document.getElementById("modeLabel").textContent = currentExamLabel;
   document.getElementById("questionCount").textContent = currentQuestions.length;
   document.getElementById("partCount").textContent = currentQuestions.reduce((sum, question) => sum + question.parts.length, 0);
   document.getElementById("topicCount").textContent = topics.size;
   document.getElementById("toggleSolutions").textContent = solutionsVisible ? "Ocultar soluciones" : "Ver soluciones";
-  document.getElementById("newExam").classList.add("active");
+  document.getElementById("newExam").classList.toggle("active", activePreset === null);
+  document.querySelectorAll(".preset-button").forEach(button => {
+    button.classList.toggle("active", Number(button.dataset.preset) === activePreset);
+  });
 }
 
 function render(scrollToTop = true) {
@@ -879,13 +942,24 @@ function render(scrollToTop = true) {
 }
 
 document.getElementById("newExam").addEventListener("click", makeExam);
+const presetList = document.getElementById("presetList");
+for (let number = 1; number <= 10; number += 1) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "preset-button";
+  button.dataset.preset = number;
+  button.textContent = `ex${String(number).padStart(2, "0")}`;
+  button.addEventListener("click", () => loadPresetExam(number));
+  presetList.appendChild(button);
+}
 document.getElementById("toggleSolutions").addEventListener("click", () => {
   solutionsVisible = !solutionsVisible;
   render(false);
 });
 document.getElementById("printView").addEventListener("click", () => window.print());
 
-makeExam();
+loadPresetExam(1);
 </script>
 </body>
 </html>
+
